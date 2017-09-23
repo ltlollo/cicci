@@ -1,0 +1,88 @@
+\k -> Prop(k)
+
+Prop(k0) &&
+Prop(k) => Prop(k+1)
+<=> Prop(k)
+
+
+
+
+Assume Porp(k)
+--------------
+...
+Prop(k+1)
+
+
+N ge 1 A sum(i, 1, n) = n*(n+1)/2
+<subst>
+sum(1, 1, 1) = 1*2/2
+<Def Sum>
+1 = 1*2/2
+<Arith>
+1 = 1
+<Eq>
+T
+
+sum(i, 1, n) = n*(n+1)/2 => sum(i, 1, n+1)=(n+1)*(n+2)/2
+<Split off>
+sum(i, 1, n) = n*(n+1)/2 => sum(i, 1, n) + n+1 = (n+1)*(n+2)/2
+<Hp>
+n*(n+1)/2 + n + 1 = (n+1)*(n+2)/2
+<Alg>
+n*(n+1) + 2*(n+1) = (n+1)*(n+2)
+<Eq>
+T
+
+N ge 1 A sum(1, 0, n-1) = n
+<Subst>
+sum(1, 0, 1-1) = 1
+<def sum>
+1=1
+<Eq>
+T
+
+sum(1, 0, n-1) = n => sum(1, 0, n) = n+1
+<Split>
+sum(1, 0, n-1) = n => sum(1, 0, n-1) + 1 = n+1
+<alg>
+sum(1, 0, n-1) = n => sum(1, 0, n-1) = n
+<IH> inductive hipot
+sum(1, 0, n-1) = n => n = n
+<=>-simp>
+T
+
+n ge 1 A sum(x, 0, n-1) = n*x
+
+sum(x, 0, 0) = x
+<Hp>
+T
+
+sum(x, 0, n-1) = n*x => sum(x, 0, n) = (n+1)*x
+<spl>
+sum(x, 0, n) + x = (n+1)*x
+<alg>
+sum(x, 0, n) = n*x
+<IH>
+T
+
+
+n ge 1 sum(i*i, 0, n-1) = (n-1)n(2n-1)/6
+
+sum(i*i, 0, 0) = (1-1)1(2*1-1)/6
+<alg>
+sum(i*i, 0, 0) = 0
+<def>
+0=0
+<eq>
+T
+
+sum(i*i, 0, n-1) = (n-1)n(2n-1)/6 => sum(i*i, 0, n) = (n)(n+1)(2(n+1)-1)/6 
+<spl>
+sum(i*i, 0, n-1) = (n-1)n(2n-1)/6 => sum(i*i, 0, n-1) + n*n = (n)(n+1)(2(n+1)-1)/6 
+<IH>
+(n-1)n(2n-1)/6 + n*n = (n)(n+1)(2(n+1)-1)/6
+<alg>
+(n-1)(2n-1) + n/6 = (n+1)(2n+1)
+-3n+1 +n/6 = 3n+1
+
+35n + 6 = 0

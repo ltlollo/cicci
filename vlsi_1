@@ -1,0 +1,793 @@
+VLSI 1 - LOGIC
+
+ASIC : chip designed for a specific task
+Semi-custom : design reusing already designed parts
+	not as dense (transistor / area), less dev cost
+CAD : design software tool
+
+EDA : electronics CADs (electronics design chips)
+
+SOC : (system on a chip) many blocks of functions
+
+CAD Flow : layers of abstraction for chip design
+	Synthesis (Step 1 -> Step 2)
+		where Step N the most concrete
+	Verification (Step 2 -> Step 1)
+
+Step 1 : Logic Synthesis
+
+LOGIC
+-----
+
+Computational Bool Algebra : compute with boolean eqs.
+Boolean Verification :
+	BDD (binary decistion diagram, equality of logic nets),
+	SAT (satisfiability)
+2-Level Logic Synthesis : AND / OR structs
+Multi-Level Logic Synthesis : complex structs
+
+Key Phrases/Concepts
+
+Keep your eyes open for the following key terms or phrases as you interact with
+the lecture videos and complete the activities.
+    Shannon cofactors
+    Boolean Difference
+    Universal and Existential quantification
+    PCN and URP ideas and representations
+
+Computational Boolean Algebra
+
+kmaps impractical for large boolean functions, conputational approach is needed
+
+Shannon expantion
+given a boolean function F(x0..xn) -> Bool
+Shannon cofactor for xi is the pair
+	F(x0, .. xi = 0, xn), negative cofactor
+	F(x0, .. xi = 1, xn), positive cofactor
+sometimes abbriviated as F(xi=0), F(xi=1) or F_x', F_x
+Note negate is experessed as : ~a = a' = !a
+
+Shannon expansion theorem
+F(x0..xn) = xi * F(xi=1) + ~xi * F(xi=0)
+
+this can be repeated for arch variable, eg
+f(x, y) =
+f(x, y) = x f(x=1) + ~x f(x=0) =
+f(x, y) = x (y f(x=1, y=1) + ~y f(x=1, y=0)) + ~x (y f(x=0, y=1) + ~y f(x=0, y=0)) =
+f(x, y) = x y f(x=1, y=1) + x ~y f(x=1, y=0) + ~x y f(x=0, y=1) + ~x ~y f(x=0, y=0)
+
+
+given two functions F(x..), G(x..) functions of n variables
+proprieties:
+(F')_x = (F_x)'
+(F G)_x = F_x G_x
+(F + G)_x = F_x + G_x
+(F ^ G)_x = F_x ^ G_x
+
+Boolean derivatives
+df / dx = f_x ^ f_x'	where ^ is xor, a ^ b = ab' + a'b
+	or df/fx = f(x=1) ^ f(x=0)
+
+prop.
+comm: d(df / dx) / dy = d(df / dy) / dx
+distr xor: d(f ^ g) / dx = df/dx ^ dg/dx
+	NOTE: d does NOT distribute with and and or (*, +)
+
+df/dx = 0 if f is constant
+
+Examples
+f = x'						not
+df/dx = 0 ^ 1 = 1
+
+f = x * y					and
+df/dx = y ^ 0 = y
+
+f = x + y					or
+df/dx = 1 ^ y = y'
+
+f = x ^ y					xor
+df/dx = y' ^ y = 1
+
+NOTE if you manage to calc df/dx = 1, by setting the correct value of y
+that value of y is the value so that every time x changes, f(x, y) changes
+eg of x+y df/dx = 1 for y=0, so f(x,y=0) = x+0 changes every time x changes
+
+refrased:
+the boolean difference explains how an input change causes an output change for
+a boolean function f
+
+also df/dx does NOT depend on x
+------
+
+what if instead of ^ -> * or + in the f(x=1) _?_ f(x=0) formula?
+
+AND cofactors: F_x * F_x'
+universal quantification (forall xi F) [x0..xi-1 xi+1..xn]
+g = (forall x F) is a new boolean function
+
+OR cofactors: F_x + F_x'
+existential quantification (exists xi F) [x0..xi-1 xi+1..xn]
+g = (exists x F) is a new boolean function
+
+
+given f(.. x ...)
+	what happens when g = (forall x f) = 1?
+	then the input makes f 1 for all values of x (indipendent of x)
+
+	what happens when g = (exists x f) = 1?
+	then for this input it exists a value of x st f is 1
+
+Additional props
+	f(x, y, ...)
+	(forall x y F) = F_xy * F_x'y * F_xy' * F_x'y'		and of all cofactors
+	(exists x y F) = F_xy + F_x'y + F_xy' + F_x'y'		or of all cofactors
+
+----
+Network Repair
+
+f(a, b) = ab + b'
+broken network g = ab ? b'
+
+replace suspect broken gate ? with a mux
+mux(s1, s2, d0..d3) s1, s2 are the original inputs
+find values of d0..d3 so that mux(ab, b', d0..3) = f
+
+g(a, b, d0, d1, d2, d3) is the function with ? replaced with mux
+f(a, b) is the working function
+
+z = g xnor f = z(a, b, d0..d3)
+note: xnor a, b = 1 iff a == b
+
+
+(forall a b z) [d0..d3] == 1?
+are the values of d's that make z = 1 for all values of a and b
+
+
+
+equation of the multiplexer :
+mux(s0, s1, d0..d3) = d0 s1' s0' + d1 s1' s0 + d2 s1 s0' + d3 s1 s0
+
+g = mux(b', ab) =
+g = d0 (ab)' b'' + d1 (ab)' b' + d2 (ab) b'' + d3 (ab) b'
+g = d0 (ab)' b + d1 (ab)' b' + d2 (ab) b + d3 ab b'
+g = d0 (ab)' b + d1 (ab)' b' + d2 ab
+g = d0 (ab)' b + d1 (ab)' b' + d2 ab
+g = d0 a'b + d1 b' + d2 ab
+
+
+z = g xnor f = f g + f'g'
+
+the solution is
+(foreach a b z) = Z_ab * Z_a'b * Z_ab' * Z_a'b'
+
+use the fact that the cofactor of xnor is xnor of cofactors
+
+z = (d0 a'b + d1 b' + d2 ab) + (ab + b')
+
+z_a'b'	= d1 xnor 1 = d1
+z_a'b	= d0 xnor 0 = d0'
+z_ab'	= d1 xnor 1 = d1
+z_ab	= d2 xnor 1 = d2
+
+
+note
+	z_a'b' = x1 a'b' + x2 a'b + x3 ab' + x4 ab = x1 the factor that matches
+	the cofactor values
+
+(forall a b z) = d1 * d0' * d1 * d2 = d0' d1 d2
+
+solution is value of d0..d3 st forall is a 1
+	d0 = 0, d1 = 1, d2 = 1, d3 = X
+		where X = does not matter
+
+the solution can be (d0..3) = 0111 = OR which is the original solution (ab+b')
+but also 0110 = XOR which also repair the circuit
+	because ab + b' = ab ^ b'
+
+what was done in f(p...) = 1 is called SAT :
+	find the vaues, if any, of p... st f = 1 (there can be 0-ways to satisfy)
+
+------
+
+Tautology
+
+
+f == 1
+
+strategy :
+split f over x
+
+prove that
+f(x=0) == 1
+prove that
+f(x=1) == 1
+
+because f == 1 <=> f(x=1) == 1 * f(x=0) == 1
+						AND ---^
+
+to represent a boolean formula write as sum of products
+f(a, b, c) = a' + bc + ab
+has N terms (sum 1:n) (N=3)
+formula of M variables (M=3)
+
+list of cubes in hypercube (see hypercube notation)
+
+the representation is a vector of N elements
+each element is a vector of M elements_
+each element_ is
+	01 if the corrisponding variable appears in the formula as x
+	10 if the corrisponding variable appears in the formula as x'
+	11 if the corrisponding variable does not appear in the formula
+
+eg
+f(a, b, c) = a' = [[10, 11, 11]]
+g(a, b, c) = bc = [[11, 01, 01]]
+
+f * g = the and of the terms [[10, 01, 01]] = a'bc
+
+a * a' = [[00, 11, 11]] => if the value is 00 the formula goes away
+
+
+splitting in the two cofactor over x of f(...x...) is
+importatnt to verify if f is a tautology, what is the algo to calculate the
+cofactors then?
+
+
+f_x = f(x=1)
+[...10...] -> drop from the list 
+[...01...] -> replace with [...11...]
+[...11...] -> leave it alone
+
+f_x' = f(x=0)
+[...10...] -> replace with [...11...]
+[...01...] -> drop from the list 
+[...11...] -> leave it alone
+
+
+eg. f = abd + bc' = [[01 01 11 01], [11 01 10 11]]
+
+f_a = [[11 01 11 01], [11 01 10 11]]
+f_c = [[01 01 11 01], []] = [[01 01 11 01]]
+
+-----
+
+Unate function
+	a boolean funtion when variables appear in only one polarity.
+	if the variable name is x then only x can appear in the formula, so no x'
+								or only x' can appear in the formula, so no x
+		eg: ab + ac'd+c'de' (appears: a, b, c', d, e')
+
+	unate over a variable x if the propriety applyes only to the x variable
+		eg: ab+b' is unate over a
+
+	positive unate in var x if f(x=0) <= f(x=1)
+	negative unate in var x if f(x=0) >= f(x=1)
+
+	if f is not unate, is called binate
+
+
+
+given the cube list form
+	f = [[01 11 11] [11 10 01] [01 11 01]] is unate if
+	each variable it mantains the same value OR don't care
+
+	f = [[01 11 11]
+		 [11 10 01]
+		 [01 11 01]]
+	  = [[01 -- --]
+		 [-- 10 01]
+		 [01 -- 01]] is unate
+
+
+
+unate propriety is importatn because
+th: a unate cube list is a tautology iff it contains all don't care cubes
+	[11 11 ... 11]
+because [11 11 11 11 11.....] is the formula for 1, doesn't care about input,
+but returns a 1
+
+Rule 1:
+	if [11 ... 11] is in a cube list L -> L is a tautology
+Rule 2
+	if a cube list L is unate, but does not contain [11 ... 11], L != 1
+	not a tautology
+
+
+in the algo to verify if a formula is a tautology, when we split we choose
+as heuristic, the most 'binate' variable
+
+variable in a N list
+	dc	= #11
+	t	= #01
+	f	= #10
+		where t+n+dc = N
+
+	unate if t = 0 or f = 0
+	most binate is the one that max (t+n)
+	in case there are multiple, the min abs(t-n)
+
+
+the algorithm is called URP (Unate Recursive Paradigm)
+
+------
+Test1
+
+
+F = (xy + x'z) ^ w
+
+F_y' = x'z ^ w = x'zw' + (x'z)'w = x'zw' + xw + z'w
+
+(x+z) ^ w = (x+z)w' + (x+z)'w = xw'+ zw' + x'z'w
+
+
+^1 = not
+^0 = id
+
+
+
+not(xy + x'z) = not(xy) not(x' z) = (x' + y') * (x + z')
+= x'z' + y'x + y'z'
+
+-
+
+
+F = (xy + x')' = (xy)' x = (x'+y')x = xy'
+
+F = x + x'z
+
+-
+
+af(a) + a'f(a')
+
+
+x f(x=1) ^ x' f(x=0)
+x f(x=1) (x' f(x=0))' + (x f(x=1))' (x' f(x=0))
+x f(x=1) (x + f'(x=0)) + (x' + f'(x=1)) (x' f(x=0))
+x f(x=1) + x f(x=1) f'(x=0) + x' f(x=0) + x' f(x=0) f'(x=1)
+x f(x=1) (1 +  f'(x=0)) + x' f(x=0) (1 + f'(x=1))
+
+-
+
+p^p = 0, p^p' = 1
+
+F = ((a+b)' x)' + x' y
+
+
+dF/dx _x'= 1 + y = 1 
+dF/dx _x = (a+b)
+
+dfdx = 1 ^ (a+b) = (a+b)' = a'b'
+
+dfdy _y' = ((a+b)' x)' = a + b + x'
+dfdy _y = ((a+b)' x)' + x' = a + b + x'
+
+a ^ a = 0
+dfdy = 0
+
+5-
+
+
+F = ((a+b)' x)' + x' y
+
+dfda _a'= b + x' + x' y = b + x'
+dfda _a = 1
+
+dfda = (b+x')' = b'x = g
+
+dgdb _b'= x
+dgdb _b = 0
+
+dgdb = x = df/dab
+
+6- d->forall
+
+dF/dx _x'= 1 + y = 1 
+dF/dx _x = (a+b)
+
+7- d->forall
+
+dfda _a'= b + x' + x' y = b + x'
+dfda _a = 1
+
+8-
+
+
+f = mux(a, b, d0..3) c + a b =
+	d0 b' a' + d1 b' a + d2 b a' + a b	
+	d0 b' a' + d2 b a' + d1 a + b a	
+	d0 b' a' + d2 b + a b + d1 a
+g = a b + a + b
+
+f xnor g = 
+
+10-
+
+f = xyw' + y'z' + xzw' + yzw'
+
+unate in x => p unate in x
+unate in w => N unate in w
+
+
+f_y' = z' + xzw'
+f_y  = xw' + xzw' + zw'
+
+z' <= xw' + zw'
+
+1 <= xw'
+0 <= 1 
+
+
+
+
+[01 01 10 10], [11 01 11 11], [10 10 10 01], [01 11 10 10]
+x=0 [11 01 11 11], [11 10 10 01]
+x=1 [11 01 10 10], [11 01 11 11], [11 11 10 10]
+
+w=0
+[01 01 10 11], [11 01 11 11], [01 11 10 11]
+w=1
+[11 01 11 11],
+[10 10 10 11]
+
+f_x = f(x=1)
+[...10...] -> drop from the list 
+[...01...] -> replace with [...11...]
+[...11...] -> leave it alone
+
+f_x' = f(x=0)
+[...10...] -> replace with [...11...]
+[...01...] -> drop from the list 
+[...11...] -> leave it alone
+
+
+
+---------
+LOST MIDDLE SECTION (VIM)
+
+BDD
+
+
+SAT
+
+---------
+
+
+
+
+Logic Synthesis - 2 level logic (AND - OR)
+
+to get a optimal K-map algo : reduce-expand-irredundant loop
+
+Reduce : shrink the cubes that are overlapping
+Expand : given a non optimal K-map grow each cube to be maximal
+Iddedundant : Kill the cubes that are redundant
+
+Prime (all cubes are maximal), irredundant (cubes cannot be removed) =>
+	reduce ->
+not prime
+	-> expand =>
+prime, not irredundant
+	-> irredundant =>
+prime, irredundant
+
+
+in cube notation : expand == remove one or more variable
+
+algebraically expand becomes a covering problem:
+	goven a boolean matrix M(n x m)
+	a cover for M : a set of rows that "cover" (has 1) all the columns
+	when ORred together
+
+
+eg
+	0 1 0 1		|	cover all the matrix [0] ^ [1] = 1 1 1 1
+	1 0 1 0		|
+	0 0 1 0
+	0 1 1 1
+
+
+	heuristic algo: find the smallest cover for a matrix
+
+
+Expand :
+	-choose a term to expand
+	-find the OFF set (the same for the "cover" but with 0
+		it is done using the URP complement of the function F to get F'
+	-create a table for the terms of F' in the cols
+		and the elements of the term you want to expand in the rows
+
+
+		eg F = w'y'z' + xz +x'yz' + w'xyz'
+		F' = x'z + wxz' + wy'z'
+
+		choose to expand " w'xyz' " because it has size 1 in the K-map
+		table
+		put 0 in same polarity / dont' care
+		put 1 in opposite polarity
+			
+				x'z | wxz' | wy'z'
+				-----------------
+			w'|       1      1				//space is 0
+			x | 1
+			y |	             1
+			z'|	1
+
+		1 == cube NOT allowed to expand in this places
+
+	-find a cover in this table
+		eg. w'x, or w'z
+
+	-keep the variable selected
+		w'xyz' -> EXPAND -> w'x
+			OR
+		w'xyz' -> EXPAND -> w'z
+
+Algo pro/cons:
+	best, not optimal
+	minimal, not minimum, prime irredundant
+
+-----------
+Multilevel Logic
+
+why?
+		AREA		big			small
+	DELA	slow				Multi
+			fast	2-level
+
+Also
+	1000 ANDs -> OR => OR fan in = 1000, Bad not practical
+	
+
+Algebraic Division:
+
+Q, R = div(F, D)
+	for (cube d in D)
+		C = F cubes that contains d
+		if C empty
+			return 0, F // Q, Rem
+		C = C \ d		// the cubes with the d vars removed
+		if d == D[0]
+			Q = C
+		else
+			Q = Q intersect C
+		return Q, F - (Q*D)
+	
+Logic Network Model
+	graphs of ligc primitives
+	not restrited to AND/OR but any 2 Boolean function 
+
+
+
+Optimization on this graphs:
+	Simplify: optimize the insides of the operators (2-level optimization)
+	Remove  : remove nodes too small and sobstitute in the fan-out
+	Add		: take big nodes and split in small nodes
+
+
+here : (inputs in parens), [Node], (outputs are connected to other nodes)
+
+
+####
+
+(a, b, c) -> [ X = a + ab + c ] ->(...//connected to other places )
+
+	-> Simplify =>
+
+(a, b, c) -> [ X = a + bc ] ->(...//connected to other places )
+
+#####
+					.....
+						\
+(a, b) ->  [Z = ab] ---> [X = qZ + bla]
+					 \-> [Y = cdZ + bla]
+						/
+	-> Remove =>
+
+... -> [X = qab + bla] -> ....			// this other nodes get more complex
+... -> [Y = cdab + bla] -> ....
+
+
+#####
+
+[X = ab + c + r]
+[Y = abd + cd]
+[Z = abrs + crs]
+
+	-> Factor =>
+
+			  [X = Q+r]
+			/
+[Q = ab+c]------[Y = Qd]
+			\
+			  [Z = Qrs]
+
+
+
+
+To factor the bool expresions, use the Algebraic Model,
+so threat variables as numbers, * -> mul, + -> addition
+LOOSE this proprieties:
+	a+a' = 1		a*a' =0
+	a * a = a		a+a=a
+	a+1=1			a+(b*c) = (a+b) * (a+c)
+
+
+USE JUST THIS props
+	a*b = b*a
+	a+b = b+a
+	a*(b*c) = (a*b)*c
+	a+(b+c) = (a+b)+c
+	a*(b+c) = a*b + a*c
+	a*1 = a
+	a*0 = 0
+	a+0 = a
+
+as i lost the "modulo, inverse" proprieties, negate values becomes new
+variables
+	eg : F = ab+a'x+b'y
+	becomes :
+		let R = a'
+		let S = b'
+		F = ab+Rx+Sy
+	
+
+##
+Algebraic division
+	given F and D, F = D Q + R    // D divisor, Q quotient, R remainder
+
+Eg		F = ac + ad + bc + bd + e
+
+D				Q		R				Factor
+ac+ad+ab+ab+e	1		0				Y
+a+b				c+d		e				N
+c+d				a+b		e				N
+a				c+d		bc+bd+e			N
+b				c+d		ac+ad+e			N
+c				a+b		ad+bd+e			N
+d				a+b		ac+bc+e			N
+e				1		ac+ad+bc+bd		N
+
+
+Nomencalture: Terms (names used by me) -> Cubes (course)
+
+-----
+How to find good divisors?
+using kernel / cokernels
+
+Divisors are found in kernels of F, K(F)
+
+How to find k in K(F) ? divide F y one of it's co-kernels c
+
+
+
+A kernel k of F boolean expression is
+a cube-free quotion obtained by dividing F by a single cube c
+c is a co-kernel of F
+
+			quotient F
+		  -----------------
+divisor D|	expression F
+			   ____________
+				remainder R
+
+F = DQ + R
+~~~
+
+			kernel k if !!cube-free!!
+c = 1 cube	expr F
+				remainder R
+
+F = ck + R
+
+
+Cube-free : a+b, a+b+c, ab+acd+bd // non posso raccogliere
+not cube free: a == a(1), ab+ac == a(b+c), abc+abn+a = a(bc+bn+1)
+
+
+
+eg	F = abc+abd+bcd
+cube d			F=dQ+R				is kernel of F
+1				1(abc+abd+bcd)+0	No, has cube = "b" as factor
+a				a(bc+bd)+bcd		No, has cube = "b" as factor
+b				b(ac+ad+cd)			yes, "ac+ad+cd" is a kernel, with co-k "b"
+ab				ab(c+d)+bcd			yes, "c+d" is a k with co-k "ab"
+
+
+NOTE: Kernels are not unique
+-----
+Bryton McMullen Th:
+ F, G have dovisor d <=> k1 in K(F), k1 in K(G), d = k1 intersect k2, d has 2 cubes
+
+it means that to look for common factors of F, G must look in the intersection
+of the two kernels
+
+
+for k1 in K(F):
+	for k2 in K(G):
+		size (d = k1 `intersect` k2) >= 2
+			factor F, G by d
+			break;
+
+
+
+eg
+	F = cube1 * [k1 = x+y+stuff1] + R1
+	G = cube2 * [k2 = x+y+stuff2] + R2
+
+	F = cube1 * [x+y] + cube1 * stuff1 + r1
+	G = cube2 * [x+y] + cube2 * stuff2 + r12
+
+	
+	new reduced:
+	let d = x+y
+	F = cube1 * d + cube1 * stuff1 + r1
+	G = cube2 * d + cube2 * stuff2 + r2
+
+
+
+
+-----
+How to find elements of K(F)?
+recursion:
+suppose to have F = cube * k1 + r1
+	k1 is a boolean function with kernel K(k1)
+
+	k2 in K(k1) => k1 = cube2 * k2 + r2
+
+	F = cube1 * (cube2 * k2 + r2) + r1
+
+	then since cube1 * cube2 is still a cube
+
+	F = (cube1*cube2) * k2 + cube1 * r2 + r1
+		_____________   __   _______________
+		a cube       a quotioent      a rest
+
+		therfore k2 is also a kernel for F
+
+
+
+so k is a K0 kernel if it contains no other kernel except itself
+a level Kn kernel if it contains at least one level n-1 level kernel
+
+
+
+					F
+					/\
+				  K1  K2
+				 /	  /\
+				K0	 k0 K1
+					     \
+						  K0
+
+
+co-kernels come from intersecting cubes in sum of product form
+	so intersecting N>1 cubes of F we can get POTENTIALLY a co-kernel
+
+
+
+
+FindKenrnels( __!!CubeFree!!__ SOP expression F)
+	K = {}
+	for variable x in F
+		if a, b = findCubesWithVar(x)		// there myght be less than 2
+			S = findCubesWithVar(x)			// list of cubes
+			co = intersect(S)				// cube with litterals in all S cubes
+			k = k union FindKernels(F / co) // F/co remove all litterals in co = 01 -> 11
+	K = K union F
+	return K
+
+NOTE: with the current algo must check before FindK if the expression is cube-free
+	ALSO inside the recursion
+
+NOTE: in the current algo kernels will be checked multiple times
+	eg when variable x = a might find "b+c" kenel
+		when variable x = d might find ... and FindK(...) can return also "b+c"
+
+
+so given F, G
+	when you want a single cube divisor, look for co-kernels
+	when you want a multiple cube divisor, look for kernels
+
+
+
+

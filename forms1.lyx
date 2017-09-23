@@ -1,0 +1,348 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $d$
+\end_inset
+
+ of n-form is a (n+1)-form
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $\left|d\alpha\right|=\left|\alpha\right|+1$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $d(f\cdot dx)=d(f\wedge dx)=df\wedge dx$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $d(a\cdot dx)$
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+# 
+\begin_inset Formula $d(\alpha+\beta)=d\alpha+d\beta$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+# 
+\begin_inset Formula $\left|\alpha\right|=0\Rightarrow\alpha\wedge\beta=\alpha\cdot\beta$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $d(P\wedge dx+Q\wedge dy+R\wedge dz)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $=dP\wedge dx+dQ\wedge dy+dR\wedge dz$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $=(P_{x}\wedge dx+P_{y}\wedge dy+P_{z}\wedge dz)\wedge dx+(Q_{x}\wedge dx+Q_{y}\wedge dy+Q_{z}\wedge dz)\wedge dy$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $+(R_{x}\wedge dx+R_{y}\wedge dy+R_{z}\wedge dz)\wedge dz$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $=(P_{z}-R_{x})\wedge dz\wedge dx+(Q_{x}-P_{y})\wedge dx\wedge dy+(R_{y}-Q_{z})\wedge dy\wedge dz$
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $\tilde{\_}:(\mathbb{R}^{3}\to\mathbb{R}^{3})\to\mathbb{F}^{1,3}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $\_^{\star}:(\mathbb{R}^{3}\to\mathbb{R}^{3})\to\mathbb{F}^{2,3}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $\mathbf{\tilde{F}}=P\wedge dx+Q\wedge dy+R\wedge dz$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $\mathbf{F^{\star}}=P\wedge dy\wedge dz+Q\wedge dz\wedge dx+R\wedge dx\wedge dy$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $df=\widetilde{\nabla f}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $d\mathbf{\tilde{F}}=(\nabla\times\mathbf{F})^{\star}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $d(\mathbf{F^{\star}})=(P_{x}+Q_{y}+R_{z})\wedge dx\wedge dy\wedge dz=(\nabla\cdot\mathbf{F})\wedge dx\wedge dy\wedge dz$
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $f:\mathbb{F}^{0,3}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $g:\mathbb{F}^{0,3}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $d(f\wedge g)=d(f\cdot g)=(f\cdot g)_{x}\wedge dx+(f\cdot g)_{y}\wedge dy+(f\cdot g)_{z}\wedge dz$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $=(f_{x}\cdot g+f\cdot g_{x})\wedge dx+(f_{y}\cdot g+f\cdot g_{y})\wedge dy+(f_{z}\cdot g+f\cdot g_{z})\wedge dz$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $\alpha:\mathbb{F}^{1,3}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $d(f\wedge\alpha)=df\wedge\alpha+f\wedge d\alpha$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $d(\alpha\wedge f)=d\alpha\wedge f+\alpha\wedge df$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $=f\wedge d\alpha-df\wedge\alpha$
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $\alpha:\mathbb{F}^{p}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $\beta:\mathbb{F}^{q}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Formula $\alpha\wedge\beta=(-1)^{p\cdot q}\beta\wedge\alpha$
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+# 
+\begin_inset Formula $(\mathcal{M}\cdot\mathcal{M},\mathcal{M}+\mathcal{M}):\mathcal{A}\Rightarrow(d\mathbb{F},\mathbb{F}+\mathbb{F}):\mathcal{A}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+# alg relations valid in (mat mul mat, mat add mat) is valid in (d form,
+ form add form)?
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+
+\end_layout
+
+\end_body
+\end_document

@@ -1,0 +1,454 @@
+2.6
+
+
+p->r A q->r = pVq ->r
+<impl>
+!pVr A !qVr = !(pVq) V r
+<demorgan>
+!pVr A !qVr = (!p A !q)  V  r
+<comm, distr, comm * 2>
+!pVr A !qVr = !pVr A !qVr
+<id>
+T
+
+
+S: skip
+
+.Law of exluded miracle
+wp(S,F) = F
+<init S>
+wp(skip, F) = F
+<def skip>
+F = F
+<id>
+T
+
+.Distrib of conj
+wp(S,Q) ∧ wp(S,R) = wp(S,Q ∧ R)
+<init S>
+wp(skip,Q) ∧ wp(skip,R) = wp(skip,Q ∧ R)
+<def skip>
+(Q) ∧ (R) = (Q ∧ R)
+<id>
+T
+
+.Low of monotonicity
+(Q ⇒ R) ⇒ (wp(S,Q) ⇒ wp(S,R))
+<init S>
+(Q ⇒ R) ⇒ (wp(skip,Q) ⇒ wp(skip,R))
+<def skip>
+(Q ⇒ R) ⇒ ((Q) ⇒ (R))
+<id>
+T
+
+.Low of distrib of disj
+wp(S,Q) ∨ wp(S,R) ⇒ wp(S,Q ∨ R)
+<init S>
+wp(skip,Q) ∨ wp(skip,R) ⇒ wp(skip,Q ∨ R)
+<def skip>
+(Q) ∨ (R) ⇒ (Q ∨ R)
+<id>
+T
+
+
+
+S: abort
+
+.Law of exluded miracle
+wp(S,F) = F
+<init S>
+wp(abort, F) = F
+<def abort>
+F = F
+<id>
+T
+
+.Distrib of conj
+wp(S,Q) ∧ wp(S,R) = wp(S,Q ∧ R)
+<init S>
+wp(abort,Q) ∧ wp(abort,R) = wp(abort,Q ∧ R)
+<def abort>
+F ∧ F = F ∧ F
+<id>
+T
+
+.Low of monotonicity
+(Q ⇒ R) ⇒ (wp(S,Q) ⇒ wp(S,R))
+<init S>
+(Q ⇒ R) ⇒ (wp(abort,Q) ⇒ wp(abort,R))
+<def abort>
+(Q ⇒ R) ⇒ (F ⇒ F)
+<impl>
+(Q ⇒ R) ⇒ T
+< ⇒-simpl >
+T
+
+.Low of distrib of disj
+wp(S,Q) ∨ wp(S,R) ⇒ wp(S,Q ∨ R)
+<init S>
+wp(abort,Q) ∨ wp(abort,R) ⇒ wp(abort,Q ∨ R)
+<def abort>
+F ∨ F ⇒ F ∨ F
+<id>
+T
+
+
+S: S1;S2
+
+.Law of exluded miracle
+wp(S,F) = F
+<init S>
+wp(S1;S2,F) = F
+<def ;>
+wp(S1, wp(S2, F)) = F
+<wp S2, ex.M>
+wp(S1, F) = F
+<wp S1, ex.M>
+T
+
+.Distrib of conj
+wp(S,Q) ∧ wp(S,R) = wp(S,Q ∧ R)
+<init S>
+wp(S1;S2,Q) ∧ wp(S1;S2,R) = wp(S1;S2,Q ∧ R)
+<def ;>
+wp(S1, wp(S2,Q)) ∧ wp(S1, wp(S2,R)) = wp(S1, wp(S2,Q ∧ R))
+<L.of.C>
+wp(S1, wp(S2,Q) ∧ wp(S2,R)) = wp(S1, wp(S2,Q ∧ R))
+<L.of.C>
+wp(S1, wp(S2, Q ∧ R)) = wp(S1, wp(S2,Q ∧ R))
+<id>
+T
+
+.Low of monotonicity
+(Q ⇒ R) ⇒ (wp(S,Q) ⇒ wp(S,R))
+<init S>
+(Q ⇒ R) ⇒ (wp(S1;S2,Q) ⇒ wp(S1;S2,R))
+<def ;>
+(Q ⇒ R)) ⇒ (wp(S1, wp(S2,Q)) ⇒ wp(S1, wp(S2,R))))
+
+.Low of distrib of disj
+wp(S,Q) ∨ wp(S,R) ⇒ wp(S,Q ∨ R)
+<init S>
+wp(S1;S2,Q) ∨ wp(S1;S2,R) ⇒ wp(S1;S2,Q ∨ R)
+<def ;>
+wp(S1, wp(S2,Q)) ∨ wp(S1, wp(S2,R)) ⇒ wp(S1, wp(S2,Q ∨ R))
+<L.of.M * 2>
+wp(S1, wp(S2,Q ∨ R)) ⇒ wp(S1, wp(S2,Q ∨ R))
+<id>
+T
+
+
+S: if
+
+.Law of exluded miracle
+wp(S,F) = F
+<init S>
+wp(if,F) = F
+<def if>
+(G1 ∨ G2) ∧ (G1 ⇒ wp(S1, R)) ∧ (G2 ⇒ wp(S2, R)) = F
+<init R>
+(G1 ∨ G2) ∧ (G1 ⇒ wp(S1, F)) ∧ (G2 ⇒ wp(S2, F)) = F
+<L.o.exM>
+(G1 ∨ G2) ∧ (G1 ⇒ F) ∧ (G2 ⇒ F) = F
+<impl, exmid>
+F = F
+<id>
+T
+
+.Distrib of conj
+wp(S,Q) ∧ wp(S,R) = wp(S,Q ∧ R)
+(G1 ∨ G2) ∧ (G1 ⇒ wp(S1, Q)) ∧ (G2 ⇒ wp(S2, Q))
+	∧  (G1 ∨ G2) ∧ (G1 ⇒ wp(S1, R)) ∧ (G2 ⇒ wp(S2, R))
+	=  (G1 ∨ G2) ∧ (G1 ⇒ wp(S1, Q ∧ R)) ∧ (G2 ⇒ wp(S2, Q ∧ R))
+<comm and-simp, D.o.C, id>
+T
+
+Low of monotonicity
+(Q ⇒ R) ⇒ (wp(S,Q) ⇒ wp(S,R))
+<init S>
+(Q ⇒ R) ⇒
+(
+	(G1 ∨ G2) ∧ (G1 ⇒ wp(S1, Q)) ∧ (G2 ⇒ wp(S2, Q)) ⇒ 
+	(G1 ∨ G2) ∧ (G1 ⇒ wp(S1, R)) ∧ (G2 ⇒ wp(S2, R))
+)
+<???????>
+revisit all
+
+
+
+
+.Low of distrib of disj
+wp(S,Q) ∨ wp(S,R) ⇒ wp(S,Q ∨ R)
+<init S>
+same as conj
+
+
+
+
+Homework 271
+
+{ Q : (s = (∑i | 0 ≤ i < k : b(i))) ∧ (0 ≤ k < n) }
+	S0 : s := s + b(k)
+	S1 : k := k  + 1
+{ R : (s = (∑i | 0 ≤ i < k : b(i))) ∧ (0 ≤ k ≤ n) }
+
+Q ⇒ wp(S0;S1, R)
+<init S0, S1, R>
+Q ⇒ wp("S0 : s := s + b(k);S1 : k := k  + 1", (s = (∑i | 0 ≤ i < k : b(i)))
+	∧ (0 ≤ k ≤ n))
+<;-def, :=>
+Q ⇒ wp("S0 : s := s + b(k)", s = (∑i | 0 ≤ i < k + 1 : b(i)) ∧ (0 ≤ k + 1 ≤ n))
+<split>
+Q ⇒ wp("S0 : s := s + b(k)", s = b(k) + (∑i | 0 ≤ i < k : b(i))) ∧ (0 ≤ k + 1 ≤ n))
+< :=-def ><algebra>
+Q ⇒ s = (∑i | 0 ≤ i < k : b(i)) ∧ (-1 ≤ k < n))
+<init Q>
+(s = (∑i | 0 ≤ i < k : b(i))) ∧ (0 ≤ k < n) 
+	⇒ s = (∑i | 0 ≤ i < k : b(i)) ∧ (-1 ≤ k < n))
+<split range, ⇒-simp >
+T
+
+
+{ Q : (s = (∑i | 0 ≤ i < k : b(i))) ∧ (0 ≤ k < n) }
+	S : s, k := s + b(k), k  + 1
+{ R : (s = (∑i | 0 ≤ i < k : b(i))) ∧ (0 ≤ k ≤ n) }
+
+Q ⇒ wp(S, R)
+<init S, R>
+Q ⇒ wp("s, k := s + b(k), k  + 1", (s = (∑i | 0 ≤ i < k : b(i))) ∧ (0 ≤ k ≤ n))
+<:=def><algebra>
+Q ⇒ (s + b(k) = (∑i | 0 ≤ i < k + 1 : b(i))) ∧ (-1 ≤ k < n))
+<split, algebra>
+<same proof as before (init Q)>
+T
+
+
+{
+	Q : (∀k | 0 ≤ k < n : b(k) = bb(k)) ∧ (0 ≤ i < n) ∧ (0 ≤ j < n)
+}
+	t := b(i)
+	b(i) := b(j)
+	b(j) := t
+{
+	R : (∀k | (0 ≤ k < n) ∧ (k /= i) ∧ (k /= j) : b(k) = bb(k))
+	∧  (b(i) = bb(j)) ∧ (b(j) = bb(i)) ∧ (0 ≤ i < n) ∧ (0 ≤ j < n)
+}
+
+Q ⇒ wp(S1;S2;S3, R)
+<;.def><:=-def * 3>
+Q ⇒ (∀k | (0 ≤ k < n) ∧ (k /= i) ∧ (k /= j) : b(k) = bb(k))
+	∧  (b(j) = bb(j)) ∧ (b(i) = bb(i)) ∧ (0 ≤ i < n) ∧ (0 ≤ j < n)
+<init Q>
+(∀k | 0 ≤ k < n : b(k) = bb(k)) ∧ (0 ≤ i < n) ∧ (0 ≤ j < n) ⇒
+	(∀k | (0 ≤ k < n) ∧ (k /= i) ∧ (k /= j) : b(k) = bb(k))
+	∧  (b(j) = bb(j)) ∧ (b(i) = bb(i)) ∧ (0 ≤ i < n) ∧ (0 ≤ j < n)
+<split Q, id>
+T
+
+{Q: (∀ j|0 ≤ j < i : m ≥ b(j))}
+	if
+		b(i) ≤ m → skip
+		b(i) ≥ m → m := b(i)
+	fi
+	i := i + 1
+{R: (∀ j|0 ≤ j < i : m ≥ b(j))}
+
+<If Th>
+	(b(i) ≤ m ∨ b(i) ≥ m)
+∧ 	(Q ∧ b(i) ≤ m) ⇒ wp(skip, R)
+∧ 	(Q ∧ b(i) ≥ m) ⇒ wp(m := b(i), R)
+<split, id,  ∧ -simp ><R init>
+	(Q ∧ b(i) ≤ m) ⇒ wp(skip, (∀ j|0 ≤ j < i : m ≥ b(j)))
+∧ 	(Q ∧ b(i) ≥ m) ⇒ wp(m := b(i), (∀ j|0 ≤ j < i : m ≥ b(j)))
+<skip-def, :=-def >
+	(Q ∧ b(i) ≤ m) ⇒ (∀ j|0 ≤ j < i : m ≥ b(j))
+∧ 	(Q ∧ b(i) ≥ m) ⇒ (∀ j|0 ≤ j < i : b(i) ≥ b(j)))
+<init Q>
+	((∀ j|0 ≤ j < i : m ≥ b(j)) ∧ b(i) ≤ m) ⇒ (∀ j|0 ≤ j < i : m ≥ b(j))
+∧ 	((∀ j|0 ≤ j < i : m ≥ b(j)) ∧ b(i) ≥ m) ⇒ (∀ j|0 ≤ j < i : b(i) ≥ b(j)))
+<⇒-simp,  ∧ -simp>
+((∀ j|0 ≤ j < i : m ≥ b(j)) ∧ b(i) ≥ m) ⇒ (∀ j|0 ≤ j < i : b(i) ≥ b(j)))
+<split>
+((∀ j|0 ≤ j < i : m ≥ b(j)) ∧ (b(i) = m ∨ b(i) > m)
+	⇒ (∀ j|0 ≤ j < i : b(i) ≥ b(j)))
+<distrib, subst m = b(i)>
+((∀ j|0 ≤ j < i : b(i) ≥ b(j)) ∨ ((∀ j|0 ≤ j < i : m ≥ b(j)) ∧ ( b(i) > m)
+	⇒ (∀ j|0 ≤ j < i : b(i) ≥ b(j)))
+<W/S>
+T
+
+
+while ex
+<While Th>
+
+
+(x = xb) ∧ (y = yb) ∧ (xb > 0) ∧ (yb > 0)
+	⇒ (gcd(x, y) = gcd(xb, yb)) ∧ (0 < x ≤ xb) ∧ (0 < y ≤ yb)
+<sub x, y>
+
+(x = xb) ∧ (y = yb) ∧ (xb > 0) ∧ (yb > 0)
+	⇒ (gcd(xb, yb) = gcd(xb, yb)) ∧ (0 < xb ≤ xb) ∧ (0 < yb ≤ yb)
+<comm, simp, W/S>
+T
+
+
+
+
+
+
+
+
+Total corr
+Q: (x = xb) ∧ (y = yb) ∧ (xb> 0) ∧ (yb> 0)
+Pinv: (gcd(x, y) = gcd(xb, yb)) ∧ (0 < x ≤ xb) ∧ (0 < y ≤ yb)
+G: x /= y
+t: x + y
+
+(G ∧ Pinv) ⇒ (0≤t)
+<init G, Pinf, t>
+(gcd(x, y) = gcd(xb, yb)) ∧ (0 < x ≤ xb) ∧ (0 < y ≤ yb) ∧ (x /= y) ⇒ (0≤x + y)
+<alg, split>
+(gcd(x, y) = gcd(xb, yb)) ∧ (y < x + y ≤ xb + y) ∧ (0 < y ≤ yb) ∧ (x /= y)
+	⇒ 0<x + y ∨ 0=x + 1
+<alg, comm>
+(0 < x + y) ∧ gcd(x, y) = gcd(xb, yb)) ∧ (y < x + y ≤ xb + y) ∧ (0 < y ≤ yb)
+	∧ (x /= y) ⇒ 0<x + y ∨ 0=x + 1
+<W/S>
+T
+
+
+
+{G ∧ Pinv}
+	t' := x + y
+	{wp(if, t' > x + y)}
+	if
+		x < y → y := y−x
+		y < x → x := x−y
+	fi
+{t' > x + y}
+
+wp(if, t' > x + y) =
+	(G1 ∨ G2)
+∧ 	G1 ⇒ wp(y := y−x, t' > x + y)
+∧ 	G2 ⇒ wp(x := x−y, t' > x + y)
+<if-def>
+(x < y ∨ y < x)
+	∧ 	x < y ⇒ wp(y := y−x, t' > x + y)
+	∧ 	y < x ⇒ wp(x := x−y, t' > x + y)
+< :=-def , alg>
+	(x < y ∨ y < x)
+∧ 	x < y ⇒ t' > y
+∧ 	y < x ⇒ t' > x
+
+(G ∧ Pinv) ⇒ wp(t' := x + y,
+		(x < y ∨ y < x)
+	∧ 	x < y ⇒ t' > y
+	∧ 	y < x ⇒ t' > x
+)
+<init G, Pinv, := >
+(gcd(x, y) = gcd(xb, yb)) ∧ (0 < x ≤ xb) ∧ (0 < y ≤ yb) ∧ x /= y
+	⇒  (x < y ∨ y < x)
+	∧ 	x < y ⇒ x > 0
+	∧ 	y < x ⇒ y > 0
+<alg, comm,  ∧ -simp, ⇒-simp >
+T
+
+
+
+
+3 Program deriv
+
+{ Q : (s = sb)∧(t = bt) }
+{ wp(s,t := E0,E1, (s = bt)∧(t = sb)) = (E0 = bt) ∧ (E1 = sb) }
+	s,t := E0,E1 = bt, sb = t, b
+{ R : (s = bt)∧(t = sb) }
+
+{Q : 0 < n}
+{
+	wp(i, fac := n, E0, 1 ≤ i ≤ n∧fac = (∏ j | i ≤ j < n : j)) =
+		1 ≤ n ≤ n ∧ E0 = (∏ j | n ≤ j < n : j)
+}
+i,fac := n, E0
+{R : 1 ≤ i ≤ n∧fac = (∏ j | i ≤ j < n : j)}
+
+
+{ Q : y = (∑ j | i ≤ j < n : b(j)×2^j) }
+{
+	wp(y := E0, y = (∑ j | i-1 ≤ j < n : b(j)×2^j))
+		= E0 = (∑ j | i-1 ≤ j < n : b(j)×2^j)	
+}
+y := E0
+{ y = (∑ j | i-1 ≤ j < n : b(j)×2^j)  }
+i := i−1
+{ R : y = (∑ j | i ≤ j < n : b(j)×2^j) }
+<alg>
+Q: y +  b(i-1)×2^(i-1) = (∑ j | i-1 ≤ j < n : b(j)×2^j)
+
+E0 = y +  b(i-1)×2^(i-1)
+
+
+
+
+{ Q : 0 < i < n }
+{ E = n−i-1 ∧ 0 ≤ E < n } { E: [0 n-2]  }
+i, j := i+1, E
+{ R : j = n−i ∧ 0 ≤ j < n }
+
+{ Q : 0 < i < n }
+i,:= i+1
+j := E
+{ R : j = n−i ∧ 0 ≤ j < n }
+
+NOTA: j after i, j(i)
+
+{ Q : 0 < i < n }
+{ R : E(i) = n−i ∧ 0 ≤ E(i+1) < n }
+i,:= i+1
+{ R : E(i) = n−i ∧ 0 ≤ E(i) < n }
+j(i) := E(i)
+{ R : j = n−i ∧ 0 ≤ j < n }
+
+{ Q : 0 < i < n }
+{ R : i+1 ≤ n < n+i+1 }
+i,:= i+1
+{ R : n-i = n−i ∧ i ≤ n < n+i }
+j := n-i
+{ R : j = n−i ∧ 0 ≤ j < n }
+
+
+
+{ Q : 0 < i < n }
+{ R : E = n−i-1 ∧ 0 ≤ E < n } { E: [0, n-2]  }
+j := E
+{ R : j = n−i-1 ∧ 0 ≤ j < n }
+i:= i+1
+{ R : j = n−i ∧ 0 ≤ j < n }
+
+
+
+
+While loop
+
+{Q}
+while G
+	S
+end
+{R}
+
+Q is of the form
+	{ Qr ∧ Qn }
+		where Qr is a quantifier expression over a range r in an array b
+		Qn: (0 ≤  n)
+R is of the form
+	{Rr}
+		where Rr is a quantifier expression over a range r in an array b
+<split: Qr, b, k> ∧ {I: 0 ≤ k ≤ n} 
+	i split the range Qr in two, making sure that k stays in range(r)
+{Q: Qr1 ∧ Qr2 ∧ Qn } ∧ I
+<split: Rr, b, k> ∧ 0 ≤ k ≤ n 
+	i split the range Rr in two, making sure that k stays in range(r)
+{Q: Rr1 ∧ Rr2 ∧ Qn } ∧ 0 ≤ k ≤ n
+<forward progess>
+	in order to make progess {Pinv ∧ G} = {Qr1 ∧ Rr2 ∧ I} ∨ {Qr1 ∧ Rr2 ∧ I}}
+<suppose I = G>
+

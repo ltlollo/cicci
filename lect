@@ -1,0 +1,82 @@
+frame i in major cycle (H)
+X(i) = i/F   :: maj.cycle
+phi(i) = i%F :: nframes in maj.cycle
+
+S(d, e) accepted@t ? slack rho(i, i')
+i = t/F, k = d/f - 1 :: first and last frame
+
+store slack rho(i, i') for i in [0, k], k<F
+
+slack = free time in the HyperP
+
+eg
+Sporadic
+Sn	r		e	D
+1	3		4.5	17
+2	4.5		4	29	
+3	11		1.5	22	
+4	14.5	5	44		
+
+Rsp time = Completion T - r
+
+Deferrable server:
+Prereq
+Preempt, independent,
+Fresavble sched,
+Minimize response time for Aperiodic jobs
+
+2 rules
+1- Consumption Rule: how much if the budgey is decreased when the server is exe
+2- Replenishment Rule: how much the budget is increased
+
+for Defer Server: 1:  1 rate per time unit when the server execs
+				  2:  budged is set at e_s at the beginning of a period, and returned to the server at the end of a period
+
+
+
+
+it - , failing, only - ovhead - reaction, because, deadkne, the
+
+
+
+EDF------
+What is the minimum/maximum/average response time of all tasks?
+TASK T1	0.500	0.676	1.500	0.294
+TASK T2	1.500	1.700	2.000	0.245
+TASK T3	1.000	1.967	3.500	0.921
+
+Is any task missing the deadline? Which task? Where?
+No
+
+Is the sporadic job meeting its deadline?
+No
+
+What is the response time for the sporadic job?
+29ms
+
+Which scheduler is better is better in this example; EDF or RM?
+EDF
+
+
+RM-----
+What is the minimum/maximum/average response time of all tasks?
+
+TASK T1	0.500	0.500	0.500	0.000
+TASK T2	1.500	1.840	2.000	0.233
+TASK T3	1.000	1.900	3.000	0.860
+
+Is any task missing the deadline? Which task? Where?
+No
+
+Is the sporadic job meeting its deadline?
+yes
+
+What is the response time for the sporadic job?
+None, / 30ms
+
+Which scheduler is better is better in this example; EDF or RM?
+EDF
+
+
+
+

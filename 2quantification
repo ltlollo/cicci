@@ -1,0 +1,99 @@
+(* | range : expression)
+
+* quant(var) where quant in {sum, forall, exists}
+
+(sum k | 0<=k<4  : k*k)
+ is sum k**2 for k in {0..3}
+
+(forall n | 0<=n<2 : n = n**2)
+	all predicates if the form n = n**2 where n in {0,1}
+
+(exists n | n>0: n=n**2)
+	exists a positive integer st n = n**2
+
+
+
+
+P(1) A P(2) A ... A P(n-1) = (forall k | 1<=k<n : P(k))
+
+general form: (forall k | R(k) : P(k)) or (forall k | k in S : P(k))
+
+
+P(1) V P(2) V ... V P(n-1) = (exists k | 1<=k<n : P(k))
+
+general form: (exists k | R(k) : P(k)) or (exsits k | k in S : P(k))
+
+demorgan
+!(forall k | 1<=k<n : P(k)) = (exists k | 1<=k<n : !P(k))
+
+
+
+Splitting the range
+
+(Q(k) | R(k) : P(k)) = (Q(k) | R1(k) : P(k)) q (Q(k) | R2(k) : P(k))
+
+R1 U R2 = R, R1 I R2 = {} // I intesect
+Q=sum		q=+
+Q=forall	q=A
+Q=exists	q=V
+Q=pi		q=*
+
+
+eg.
+(ex j | j in {0, i}, b(j) = b(i))
+<split R>
+(ex j | j in {0, i-1}, b(j) = b(i)) V (ex j | j = i, b(j) = b(i))
+<eval>
+(ex j | j in {0, i-1}, b(j) = b(i)) V (b(i) = b(i))
+<id>
+(ex j | j in {0, i-1}, b(j) = b(i)) V T
+<V-simp>
+T
+
+(fall j | j in {0, i}, b(j) = b(i))
+<split R>
+(fall j | j in {0, i-1}, b(j) = b(i)) A (fall j | j = i, b(j) = b(i))
+<one point>
+(fall j | j in {0, i-1}, b(j) = b(i)) A (b(i) = b(i))
+<id>
+(fall j | j in {0, i-1}, b(j) = b(i)) A T
+<A-simp>
+(fall j | j in {0, i-1}, b(j) = b(i))
+
+
+One point
+(Q(k) | k=k0 : P(k)) = P(k0)
+
+Empty Range
+(sum n | n in {} : P(n)) = 0
+(forall n | n in {} : P(n)) = T
+(exists n | n in {} : P(n)) = F
+(pi n | n in {} : P(n)) = 1
+
+beacuse i can split the range S = S U {}
+
+
+if the range is not given it's assuemd to be Nat
+
+
+
+Homework
+b(1:n), n >= 1, 1<=j<=k<=n
+b(j:k) = {} <= j>k
+1. (forall i | i in j:k, b(i) > 0)
+2. (forall i | i in j:k, b(i) <= 0)
+2. !(exists i | i in j:k, b(i) > 0)
+3. !(forall i | i in j:k, b(i) > 0)
+3. (exists i | i in j:k, b(i) <= 0)
+4. (forall i | i in j:k, !(b(i) > 0))
+4. (forall i | i in j:k, b(i) <= 0)
+5. (exists i | i in j:k, b(i) > 0)
+5. (exists i | i in j:k, b(i) > 0)
+
+
+
+
+2**(i+1) > n
+i > 0 2**i > n
+
+

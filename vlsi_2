@@ -1,0 +1,328 @@
+Extracting common divisors
+----
+
+F, G = d*Q1 + R1, d*Q2 + E2
+
+d :=  common divisor
+single cube divisor : look at co-kernels
+multiple cube divisor : look at kernels
+
+Single
+----
+
+
+form SOP equations construct cube literal matrix :
+	horz, M cols := # unique literals
+	vert, N rows := # product terms
+	M_i,j = 1 => literal_j present in priduct term_i | 0 => not present
+
+eg. P = abc + bce, Q = a, R = bd
+
+M	a b c d e
+abc	1 1 1 0 0
+bce	0 1 1 0 1
+a	1 0 0 0 0
+bd	0 1 0 1 0
+
+
+find prime rectangle : biggest set of col x set of rows such that in the
+intersection always a 1
+	primerect = rows x cols, foreach i.rows, foreach j.cols M_i,j = 1
+
+compute how many literals are saved :
+	C := #cols
+	W(r) := how many times product r appears in the network (in eg. in P, Q, R)
+	L := (C-1) * (sum r. W(r)) - C		// literals saved
+
+Multiple
+----
+
+find co-kernels, kernels // B-Mc theorem multiple cube factors are intersection
+of the prduct terms in the kenrnels
+
+MOTE: remember multiple co-k can have the same kernel, also ignore trivial
+co-kernel = 1, kernel = full-expr
+
+make co-kernel-cube matrix
+hors : N cols := # unique cubes in all the kernels
+	(eg {k} = {a+b+c, ab+bc} => a, b, c, ab, bc)
+vert : M rows := # unique co-kernel x kernel pair
+	(eg if co-k de has 2 kernels, it gets 2 colums)
+
+M_i,j = 1 => cube_j present in (co-k, k)_i | 0 => not present
+
+
+eg co, k = a, ce | b, a+c | de, a+ce | de, b+c
+
+M	a b c ce
+a	0 0 0 1
+b	1 0 1 0
+de	1 0 0 1
+de	0 1 1 0
+
+a good divisor is the prime retangle of matrix M (like in single cube case)
+
+saved literals :
+	col weights : foreach col c. W(c) := # literals in the column cube
+	row weights : foreach row r. W(r) := 1 + # literals in co-k label
+	element values : for each place in the M cover count the number of literals
+	in the (co, k) (eg. for (de, a+b) = 3 + 3 = 6) 
+
+	L = el.values - row w. - col w.
+
+NOTE : after factorization remember to add new nodes, literals, add dont cares,
+	update matrices, etc...
+
+
+Finding prime rectangle in the matrix M
+----
+
+using greedy heuristic (heur: not global optimum, greedy : on row/col at the time)
+
+Ping-pong heur.
+
+1 pick best single row (1-row with max # liter saved)
+2 look at other row with 1 in the same place, add them
+3 look at other cols with 1 in the same place, add them
+4 goto 2a until can proceed
+5 quit
+
+NOTE : really the cover is created partially enumerating (co-k, k),
+	heuristically
+
+NOTE : look up references
+	(synthesis and opt of digital circuit)
+
+
+
+
+
+Lecture 8
+-----
+
+Implicit don't cares
+
+in multi level logic don't cares arise implicitly, must be searched for in
+order to optimize
+
+eg
+
+f = Xb+bY+XY
+X = ab
+
+PIs (primary inpts) POs (primary outs) : PIs =  a, b, POs = f
+
+a b X can occur?
+0 0 0 1
+0 0 1 0
+0 1 0 1
+0 1 1 0
+1 0 0 1
+1 0 1 0
+1 1 0 0
+1 1 1 1
+
+analyze f and its vars
+
+X b Y can occur?
+0 0 0 1
+0 0 1 1
+0 1 0 1
+0 1 1 1
+1 0 0 0 // because b=0,X=1 impossible
+1 0 1 0 // because b=0,X=1 impossible
+1 1 0 1
+1 1 1 1
+
+so, in Y/Xb Kmap Xb = 10 is impossible to occur -> don't care
+
+Y/Xb	00 10 11 10
+0		0  0  1  0
+1		1  1  1  0
+
+f = Xb + bY + XY
+becomes
+
+Y/Xb	00 10 11 10
+0		0  0  1  d
+1		0  1  1  d
+
+f = X + bY  // !!! Saved a product term
+which is more optimal (bigger covers in Kmaps, don't cares allow to cover more)
+
+...
+
+
+if Y = b+c
+some more confs become impossible
+
+
+Y/Xb	00 10 11 10
+0		0  d  1  d
+1		0  1  1  d
+
+f = b !!! !!! just a wire
+
+
+-----
+Don't cares can also be analyzed form the point of vew of the outs
+
+f = Xb+bY+XY
+
+Z = fXd
+
+X, Y as before
+
+PIs a b c d
+PO Z
+
+
+f X d affect Z?
+0 0 0 0					// if f changes form 0->1 does Z change? 
+1 0 0 0 NO					
+
+0 0 1 0
+1 0 1 0 NO
+
+0 1 0 0
+1 1 0 0 NO
+
+0 1 1 0
+1 1 1 1 YES Z=f
+
+given this info can simplify X b Y vars of f ?
+yes
+XbY = 0--					// - is don't care
+
+Y/Xb	00 10 11 10
+0		0  d  1  d
+1		0  1  1  d
+
+becomes
+
+Y/Xb	00 10 11 10
+0		d  d  d  d
+1		d  d  1  d
+
+f = 1
+
+so in the end :
+X = ab
+f = 1	// gone
+Y = b+c // useless
+Z = Xd
+
+----
+Satisfiability dont cares
+	belong to the wires INSIDE the network
+Controllability dont cares
+	patterns that happe at the inputs
+Observability dont cares
+	input patterns that make the outs insensitive to the out of the node
+	patterns that mask the outs
+
+
+
+dont cares are represented as a boolean fonction : f that makes a 1 if the
+pattern is impossible
+so can solve using BDDs, or other tecniqs
+
+SDC (satisf. dont cates)
+----
+X = a+b
+Y = ab
+f = Xc + Yd + acd
+
+PIs a, b, c, d
+PO f
+
+NOTE : SDC_fun satisfiability don't care for function fun
+
+SDC_X (X, a, b) = 1 for impossible patters of Xab
+SDC_Y (Y, a, b) = 1 for impossible patters of Yab
+
+
+out of SDC_fun (fun, in...) is 1 if different than f(in...)		// diff than is XOR
+
+eg.
+	X = ab+c
+	SDC_X = X ^ (ab+c)
+		  = X'ab + X'c + Xa'c' + Xb'c'		// what makes this 1 is impossible
+											// and can be used as dont care
+
+	what make SDC_X == 1?
+			Xabc
+	X'ab	011-
+	X'c		0--1
+	Xa'c'	10-0
+	Xb'c'	1-00
+
+
+IMPORTANT : SDCs are not used to simplify, but used to calculate CDCs
+	computability dont cares
+
+
+CDCs
+------
+
+calc CDC_F
+
+X1...Xn input to F = expr
+
+.get all SDCs of X1...Xn
+.OR alls SDCs
+.universaly quantify away all variables that are NOT used inside this node F
+.result is CDC_F == 1 is the impossible patters at input to node
+
+
+CDC_F = (foreach. v, v not in F [ sum i, xi in F. SDC_Xi ])		// sum = OR
+
+
+eg.
+
+X=a+b
+Y=ab
+F=Xc+Yd+acd
+
+CDF_f = (foreach. not input to f) (sum inputs_i SDC_i)
+	=	(		b				) (sum i=X,Y,a,c,d SDC_i)
+
+NOTE : how to calc SDC of PRIs like SDC_a, just an input wire?
+	SDC_a = a ^ a = 0
+	they can be just ignored
+
+
+so, ignoring a, b, c, d
+
+CDC_f = (foreach v. v=b) (sum i=X,Y . SDC_i)
+		= (foreach b) (X ^ (a+b)) + (Y ^ ab))
+		= (X ^ (a+b)) + (Y ^ ab))_(b=1) *  (X ^ (a+b)) + (Y ^ ab))_(b=0)
+		= X'a + X'Y + Ya'
+
+
+		so as CDC_f contains X'Y this means that X Y = 0 1 is impossible for f
+
+----
+External DCares
+
+DC externally specified
+
+eg.
+input wires are a, b, c, d
+but b=1, c=1, d=1
+
+then create an external function that imposes this values, g then OR in the mix
+SDC_g
+
+SDC_g = bcd
+
+
+so given the prev ex.
+
+CDC_f = (foreach b) (..... + bcd)
+		= X'a + X'Y + Ya' + a'cdX + acdY
+		 \	old		   /	\	new		/
+
+this means i get old impossible cubes + new impossible cubes
+
+

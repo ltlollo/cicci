@@ -1,0 +1,17 @@
+a => b
+!!! a is stronger than b // reeds also as
+b is weaker than a
+
+x > 0 => x >= 0
+
+x in {0, 5}, x >0 neither is stronger/weaker
+
+
+Rules
+
+p A q => p
+p => p V q
+p A q => p V r
+
+
+
