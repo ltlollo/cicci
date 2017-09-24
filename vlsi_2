@@ -325,4 +325,53 @@ CDC_f = (foreach b) (..... + bcd)
 
 this means i get old impossible cubes + new impossible cubes
 
+----
+Observability dont care
+
+output masked from affecting something
+
+eg.
+PIs : abc
+PO  : Z
+
+F = ab'+a'b				F : (a, b) :: Bool^2 -> Bool
+Z = ab+Fc'+F'b'
+
+
+
+ODC_F = patterns of (a,b) that make Z insensitive to F values
+			// a, b are the inputs of F
+
+This happens because Z also depends on other inputs
+eg.
+Z = F * 0 => Z insensiteive to F
+Z = F + 1 => Z insensiteive to F
+
+what makes F sensitive to X ? dF/dX == 1
+what makes F INsensitive to X ? (dF/dX)' == 1
+Z(F=0) == Z(F=1) => insensitive to F
+Z_F == Z_F'		// using shannon co-factors
+
+This happens when :
+	(Z_F ^ Z_F')' == 1    <=>  (dZ/dF)' == 1
+
+so, defn :
+	ODC_F = (forall v. v not used in F) [ (dZ/dF)' ]
+
+
+in eg.
+
+ODC_F = (forall c) ( (ab+Fc'+F'b')_(F) ^ (ab+Fc'+F'b')_F' )'
+	  = (forall c) ( ab+ac'+a'b'c'+a'bc )
+	  = (ab)
+
+NOTE : if (ab) = 1 => Z = 1
+
+
+
+in general if F's fanout is begger than 1, meaning Z1(F, ...), ... Zn(F, ...)
+then :
+
+ODC_F = (forall v. v var not input of F) (prod xi. xi = (dZi/dF)', i : 1..n)
+	where Z1..Zn are the outputs, prod = variadic AND
 
