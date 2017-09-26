@@ -58,12 +58,197 @@ connections from gate to gate called "Net", the things connected are called
 
 eg. 4point-net
 
-4    ┌───⌫
-3    │
-2  ⌦─┼─⌫
-1    │
-0    └─⌫
+5    ┌───⌫
+4    │
+3  ⌦─┼─⌫
+2    │
+1    └─⌫
+0
  0123456789
+
+
+wire cost estimators :
+	half perimeter wirelen :
+		half perimeter of smallest bounding box around all gates
+		in 4net-eg. HPWL = (5 - 1) + (8 - 1) = 11
+	HPWL =  (max g.x g in Gates - min g.x g in Gates) +
+			(max g.y g in Gates - min g.y g in Gates)
+
+	NOTE : always lower bound of real wire len
+	ball park nums : most wires are short. (e^-x)
+
+
+random iterative improvement :
+	calculate sum ni. ni in nets HPWL(ni)
+	swap randomly ni, nj in nets
+	keep the result if L = new total HPWL is less than orig
+
+problem : stuck in local minimum
+solution : hill-climbing
+
+
+T = temperature param
+keep the result if P(delta L, T) :
+	instead of always keeping the most local optimum, with some prob. P
+	that deps on delta L (HPWL new - old) and T a temperature value
+
+	P = e ^ (-delta_L/T)	// eg P = 0.72
+	R = sample D			// D = random uniform [0, 1]
+	if R < P
+		keep the swap
+		undo the swap
+
+	adjust T down
+
+
+	in the algo T goes from Hot -> Cool
+	(hot/ worst decision / ability to hillclimb -> good decisions / mostly descend)
+	
+
+
+simulated anealing : 
+	best global opt ? NO
+	most efficient optimization ? NO not always
+	is slow always ? NO
+	params must be tuned ? NO, good heuristic
+	always good results ? NO, awlsays run multiple times
+	state of the art ? NO
+
+
+-----
+Analytical method
+
+wite a function F(x1..xn, y1..yn) such that X, Y = (x1..yn) minimize F
+solve analithically (find X, Y)
+
+quadratic wire len model, where quadratic wirelen is for 2 points
+	(x1-x2)^2 + (y1-y2)^2
+for a k point net
+	1. replace the real net (like in eg. 4point-net) with a fully connected
+		clique (with k*(k-1)/2 wires)
+	2. weight (mul) each wire with a number 1/(k-1) // traditionally used
+	3. add the quadratic wirelen (norm2square) for each pair of connections
+
+eg. 4net
+   a_____b
+    \-c-/
+	 \|/
+      d
+
+a = (0, 5), b = (4, 5), c = (3, 3), d =(3, 1)
+
+k = 4, w = 1/(4-1)
+Qe =
+	(1/3)((0-4)^2 + (5-5)^2) +	// ab
+	(1/3)((4-3)^2 + (5-3)^2) +	// bc
+	(1/3)((3-3)^2 + (3-1)^2) +	// cd
+	(1/3)((3-0)^2 + (1-5)^2) +	// da
+	(1/3)((0-3)^2 + (5-3)^2) +	// ac
+	(1/3)((4-3)^2 + (5-3)^2) +	// bc
+	(1/3)((3-3)^2 + (3-1)^2) +	// cd
+	= somthing
+
+
+assume gates are dimentionally.
+also assume gates can overlap.
+
+
+to model analithically :
+S := surface of chip dimentions		eg. ([0 to 1.0] x [0 to 1.0])
+P := list of point indices			eg. (1, 2) 1-based idx
+N := nets with weights
+D := pad list at fixed positions n the border	eg. (0, 0), (1, 0.5)
+
+Q = sum p1, p2. p1, p2 in { P U D }, p1 connected p2.
+		w_p1p2 * (p1.x-p2.x)^2 + w_p1p2 * (p1.y - p2.y)^2
+
+NOTE : no xy terms, x, y, can be threated separatly
+
+Q(X) : x part of the equation
+	eg. 4(x2-1)^2 + 2(x2-x1)^2 + 1(x1-0)^2
+			 ^pad1.x				  ^pad2.x
+		  ^p2.x	NOTE p2 is conn to pad1
+		^weight
+
+QY) : y part of the eq.
+
+to find the min solve for dQ/dx = 0		// (deriv is always min here)
+
+
+dQx/dx1 = 0+4(x2-x1)(-1)+2(x1)
+		= 6*x1-4*x2 = 0
+dQx/dx2 = -4*x1+12*x2-8 = 0
+
+dQy/dy1 = 6*y1-4*y2 = 0
+dQy/dy2 = -4*y1+12*y2-4 = 0
+
+just solve the lin.sys. M x = b, M y = b
+[6 -4; -4 12] X = [0; 8]	=> X = [x1; x2] = [0.571; 0.857]
+[6 -4; -4 12] Y = [0; 4]	=> Y.... = [0.286, 0.429]
+
+NOTE : the matrix are the same, b different
+NOTE : the points in the eg. are on the same line,
+	but W=4 short wire, W=1 long wire
+
+
+to build M, first build C, connectivity matrix
+	C[i, j] = C[j, i] = 2 if pi connected pj
+						0 otherwise
+	NOTE : ignore the pads
+
+
+M elements non in the diag.
+	M[i,j] = -C[i, j]		i not j
+M elements in the diag
+	M[i, i] = sum j. j in [1, n]. C[i, j] + weight of the _pad_ wires	
+		// sum of the row i in C + eventual pad wires connected
+
+	bx[i] = wi * xi,	if pi connected to pad, also wi is weight of pad conn.
+						and xi location of the _PAD_
+			0,			otherwise
+	by same thing
+
+NOTE : M is symmetric, positive semi-definite, sparse
+		diagonally dominant M[i,i] >= M[i,j]
+
+
+Problem arise : points will overlap, and tend to concentrate in just one area
+Solution :
+	1.calc Q for area A.
+	2.divide A/2 = {A1,A2}, Q/2 ={Q1 = p in A1, Q2 = p in A2}
+	3.solve Q1 for A1, A2 for A2
+	4.repeat (interchange divide horiz/vert) ad nauseam
+
+
+Other prob : 2. the initial Q will not spread points equally in the two halves
+sort gates on x values, then on y values (for the vert cut, otherwise reverse),
+pick the first half p[0..N/2-1] will go on the left, p[N/2...N-1] to the right
+
+Other prob : keep gates on the rhs on rhs, lhs on lhs
+	also what if points connected to pads on rhs are put on lhs ?
+
+introduce pseudo-pads :
+	on the division line pads get added
+
+	so if point1(rhs) <-> pad/point2(lhs)
+				~> point1(rhs) <-> pad_new(rhs) <-> pad/point2(lhs)
+
+
+this in practice happens projecting pads on opposite side connected to choosen
+side on the boundry and also project the P[N/2...N] that is on the choosen side
+but needs to migrate to the opposite side. and the P[N/2..N] that are on the
+opposite side and are connected to the choosen side. those become new virtual
+pads.
+
+then change side and project all the things in the opposite that are connected
+to the now current side on the division line introducing the vpads.
+
+on the second division remember that the division is made of 2 lines, project
+on that.
+
+at this point - Legalization : with precise positions given real wights/heights
+	using anealing for example (with a very cool T value)
+
 
 
 
