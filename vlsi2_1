@@ -1,0 +1,69 @@
+Layout stages :
+	Technology mapping : from logic to gates
+	Placement : arranging on a surface optimally
+	Routing : connecting the gates with wires
+	Tming analysis : how fast is the net?
+
+main components (cell) in a library : geometric abstraction over physical
+	NOT
+	NAND
+	NOR
+	ADDER
+	FLIP-FLOPS
+
+differend variants in the lib.
+	Fanin/out (eg. variadic NAND)
+	timing, class (eg flip-flops)
+	drive len.
+
+NOTE : same heights, different widths
+	same h. => to be stacked together
+	diff w. => different complexity
+
+
+
+NOTE : ball park numbers on 200k gates
+	(#pins[], #cells) - ([2-8], ~25k)  ,  ([17-18], ~10k)  , (rst, ~1|2k)
+
+
+Chip size measure :
+	#gates
+	#instances : library cells
+
+
+palcer :
+	in : netlist of gates
+	out : location of each gate
+		such that the router is able to connect them minimally
+router :
+	in : location
+	out : connections
+		such that wiring is minimal
+
+-----
+placer
+
+
+simple model of space - equispaced grid
+one gate per grid cell
+goal : produce a placement for given netlist that minimize wirelen given a
+cost model
+
+optimizes estimated wire len.s for each wire
+min(sum w. w in Wire. EstimatedLen(w))
+
+connections from gate to gate called "Net", the things connected are called
+"Points", the eintire gates-wires is "Netlist"
+
+
+eg. 4point-net
+
+4    ┌───⌫
+3    │
+2  ⌦─┼─⌫
+1    │
+0    └─⌫
+ 0123456789
+
+
+
