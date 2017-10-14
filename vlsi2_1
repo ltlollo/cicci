@@ -251,4 +251,210 @@ at this point - Legalization : with precise positions given real wights/heights
 
 
 
+Tech Mapping
+------
+
+from boolean logic network, using component library, to real logic gates
+single logic network implementable in different ways uing different lib
+componets, algo : net, lib, cost model -> somewhat minimal net (minimize cost)
+
+
+algo of tech mapping : transform logic to real gates
+	transform each SOP node to NAND/NOT => big flat network
+
+----
+TMapping as tree covering
+
+method is simple and _optimal_
+
+starting data : subject tree (flat NAND2/NOT net)
+
+1. library mapping : transform the input library in NADN2/NOT gate netwokrs
+2. structural mapping : avoid bool algebra, just pattern matching on the lib
+
+
+tree repr form the output to the input nodes
+elements of the tree NAND2, NOT, input
+
+lib element match circuit -> from the root
+	NOT matches NOT
+	NAND2 matches MAND2
+	input matches everything
+	otherwise no match
+
+NOTE : symmetry matters
+
+Tree Cover
+	evey node in subject tree is covered by lib tree
+	output ov every lib gate overlaps input of nect lib pattern
+
+how to choose the covering that minimizes cost? recursion, duh..
+
+
+Problem. how to treefy the netlist? the netlists are DAGs not single root trees
+	every gatewith fanout > 2 -> root of new subtree
+	each connected fanout -> NEW _input_ to a new tree
+
+
+
+
+	2         3
+	|_________|
+    |    |
+    4    1-5
+
+	1-5, 4 :- fanout > 1 -> new trees -(4)- , -(1-5)-
+	2-(4, 1) :- connected to fanout -> 2-(new1, new2)
+	3-(1, 4) :- connected to fanout -> 3-(new3, new4)
+
+
+Tree matching algo : recursive trivial
+mincost also trivial : note when mincost for node x, is computes insert in
+	table, so that when recursivelly calling it doesn get recomputed each time
+	(dyn programming)
+
+
+Routing - Maze Routing
+-----
+
+space :: 2D-grid cells
+wire :: adj-connected cells
+obstacle :: occupied cells
+
+pins are on-grid, in the center of the grid cell
+
+----
+Simple 1-layer routing for 2-point nets
+
+Alg : source `connect` target
+on cell (Dir-Dir) where Dir {N S W E}
+
+Reachable = S source, Reachable <- i = 0
+while T target not in Reachable
+	Reachable = find all adj-cells reachable (not yet labelled*) from Reachable
+	Reacheble <- i++
+
+*) NOTE: if Cell is labelled i cannot be relabelled i+1
+
+Path = find one of adj-cell where Cell.i = i-1
+	Path <- obstructed
+	i = i-1
+
+Multi-point nets 1 src - many tgt
+1. run 2-net algo (find closest pad)
+2. backtrace to src
+3. DO NOT LABLE path as obstacle but each cell of the path as src
+4. run the 2-point algo for the new src set
+.. ( do farall targets)
+5. mark all path as obstacle
+
+
+Optimal path : Steiner Tree (exponentially hard)
+
+Multi point - multi layer
+vias allowed in limited set of cells
+algo is the same
+
+Non uniform grid cost -> for each cell the expantion process cost
+different. eg traversing via = hi cost
+
+this is used to make pads prefer different paths.
+eg assign very congested area to hi cost to make it less congested
+avoid vias
+
+algo is the same, but there is a conflict situation when expanding
+	c = cost, s = src
+	[S = 1][2  c=1]
+	[4 c=3][x  c=3]
+
+	is x 6 = 3(easr)+3(cost) or 5 = 2(north)+3(cost)?
+	ANSWER costs 5, use the smallest number
+
+
+algo :
+	find C cheapest cell in Wavefront
+	find Neighbors if C not reached
+	Costs = cost of Neighbors
+	Neighbors .predecessors is C
+	Wavefront[Costs] = Neighbors
+	Grid[Neighbors] = Reached
+	rm C form Wavefont
+	algo
+
+
+Pathcost : sum of costs on path, to index wavefront
+Wavefont : fronteer of cells fow which the patcost has been calcd
+Reached : cell which pathcost has been computed (in order not to ignore when
+	removed from WF
+Expanded : cell removed from WF and used to expand it
+
+
+        W
+       WEW
+      WEEEW
+     WEEEEEW
+      WEEEW
+       WEW
+        W
+
+if bend penaly is added cost function is inconsistent
+
+
+problem..
+eg bend cost = 2
+
+113
+211
+
+S = (0, 0), C = 1 // 0,0 is top top
+W = {(1, 0) C = 2, (0, 1) C = 3} expand D, R
+W = {(1, 1) C = 5, ...} // expand D BEND!
+W = {(2, 1) C = 8, ...} // expand R BEND!
+
+but DRRR cost is 7
+
+how is solved?
+if i is the number of steps to reach target continue to run the algo for
+k * i more steps where k can be 0.1 for example
+
+---------
+Depth fst search : bias expansion process twds the target direction.
+can this be done consistently?
+
+one way to bias is to search first in the T.x * T.y * S.x * S.y rectangle
+add a predictor function to the cost
+	pathcost(S src to C cell) + predictor(cell C to T target)
+
+typical estimator : distance to target * smallest cell cost
+
+
+NOTE : if exstimate is less than the pathcost the min cost path is guaranteed
+
+small DFS algo tweak :
+	pathcost(S from Wf to C) + C cost + pathcost(C to T) ~>
+	pathcost(S from Wf to C) + C cost + K * pathcost(C to T)
+
+	K : tuning parameter (converge faster, less optimal)
+
+-----
+Global routing
+
+idea : chop the circuit into coarse grid cells (GBOX)
+(eg 200x200 cells per GBOX)
+
+1. do first routing iteration.
+2. then int the found GBOXes set do the detailed routing.
+
+
+in the detailed routing the cells are either blocked (inf cost) or have a cost
+proportional to how much you want to avoid them
+
+in global routing cells have dynamic costs; they remember the number of wires
+that passes throu them, and ther cost increases
+														  | f=inf
+usually the cost(nwires) is {							  |
+	c1			, nwires in [0..x]						 /
+	c1 + k*x	, nwires in [x+1..y]					/ f=(c1+kx)
+	inf/very hi	, nwires in [y+1..inf]		 f=c1______/
+}											   0       x  y
 
