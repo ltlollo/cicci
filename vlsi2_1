@@ -457,4 +457,240 @@ usually the cost(nwires) is {							  |
 	c1 + k*x	, nwires in [x+1..y]					/ f=(c1+kx)
 	inf/very hi	, nwires in [y+1..inf]		 f=c1______/
 }											   0       x  y
+.
+
+
+
+
+Timing
+-------
+
+How is timing estimated?
+From the Logic side and from the Layout side.
+
+Assumption : Design is synchronous
+Timing Anal : the signal must propagate in the logic network within the given
+	clock period
+
+Gate delay model : given per gate delay calculate the whole network
+ignoring the logic : topological analisys, (can get false paths, paths that
+	can't be logically taken but result topologivcally in the max delay)
+
+Assume that all the paths are statically sensitizable (all apths can be
+	reached)
+NOTE : pessimistic assumption
+
+
+Static Timing Analysis (STA)
+------
+
+Verices : Wires
+Edges : Gates (from input set to output set exists an edge called Cell Arc)
+
+eg. (a AND b) = c  c OR d = e
+	wire a -> c = AND's Arc cost 2
+	wire b -> c = AND's Arc cost 2
+	wire c -> e = OR's Arc cost 3
+	wire d -> e = OR's Arc cost 3
+
+by convenction add a source (SRC) and sink (SNK) nodes
+	src : with 0 weight to each node
+	snk : with 0 weight fron each node
+
+eg. add to prec eg.
+	src -> a = cost 0
+	src -> b = cost 0
+	src -> d = cost 0
+	e -> snk = cost 0
+
+NOTE : the net has 1 entry and 1 exit point (SRC - SNK)
+
+in this model can also add wire costs as 1-in 1-out special gate
+	(like concentraded model)
+
+
+
+eg. from the prev. eg
+	src->0 = cost 0
+	a->x = Wire_a's cost 1.2	<<!!
+	x->c = AND's cost 2
+	....
+
+How to calc longest timing? cannot eval all paths..
+
+for a node n
+AT(n) = arrival time, latest time the signal can arrive (become stable) at
+	node n
+RAT(n) = required arrival time at node n the latest time the signal is allowed
+	to beome stable at node n // sort of the longest path to the sink
+
+Slack(n) = RAT(n) - AT(n)
+	the amount by wich a sig, can be delayes at n and not increase the longest
+	path through the net.
+	positive good, negative bad
+	positive = extra margin to change the circ. (to optimize) and not change
+		max delay
+	negative slack = problem, affect critical path the most.
+
+computed recursevly.
+
+pred(n) : nodes connected to n directly
+del(p, n) : the cost from node p in pred(n) to n
+
+AT(n) = max delay to n = {
+	0, if n == SRC
+	max(AT(p) + del(p, n) | for p in pred(n)), otherwise
+}
+
+RAT(n) also computed recursly, but from SNK
+
+succ(n) : nodes connected from n
+del(n, s) : the cost of the n->s, s in succ(n) connection
+NOTE : RATs are refined relative the end of the clock cycle (T)
+
+RAT(n) = {
+	T //cycle time//, if n == SNK
+	min(RAT(s)-del(n, s) | s in succ(n)), otherwise
+}
+
+	____ AT
+     ___v
+CLK |   |___|          Positive Slack = Arrival time < Req arrival time
+    0       T [ns]     Negative Slack = Arrival time > Req arrival time (broken logic)
+	  ^_____				because we calcd RAT form the end of clock time neg
+	 RAT					means it will not arrive in time (less than T).
+
+
+NOTE : you can always trace a path with the arrival slack value and trace the
+	root cause of the problem
+
+
+How to enumerate worst paths in worst case order (efficiently)?
+
+multiple stats :
+1. topological sorting : listo of the nodes s.t. if p->s p appears before s
+	(mulitiple legit ords) 
+
+
+assuming top.sort
+
+computeAts(g) {
+	AT(g->src) = 0
+	foreach n in top_ord(g) {
+		AT(n) = -inf
+		foreach p in pred(n) {
+			AT(n) = max(AT(n), AT(p) + del(p, n))
+		}
+	}
+}
+computeRats(g) {
+	RAT(g->sink) = CycleTime
+	foreach n in reverse(top_ord(g)) {
+		RAT(n) = -inf
+		foreach p in succ(n) {
+			AT(n) = min(RAT(n), RAT(p) - del(p, n))
+		}
+	}
+}
+
+REMEMBER : all nodes on longest path have the same slack
+
+to find the N worst paths same algo as maze routing
+
+order the heap with the smallest slack on top
+
+start pushing on the heap <path, delay, slack> = {src, 0, 0}
+
+expansion : 
+	pop path
+	is path the sink ?
+		yes -> print path
+		no -> reach the successor nodes to make new partial paths, and
+		push in the heap  {path, delay, slack}
+
+
+
+Vec<Vec<path>, delay, slack> res
+Heap<Vec<path>, delay, slack> heap = {{src}, 0, src->salck // 0 //}
+
+while (!h.empty()) {
+	p = heap.pop()
+	for {nx, delay} in p.0.last() {
+		succ = p.copy()
+		succ.0.push(nx)
+		succ.1 += delay
+		succ.2 = nx->slack
+		if (nx == snk) {
+			res.push(succ) // or store only the first n times
+		} else {
+			heap.push(succ)
+		}
+	}
+}
+
+In the end res comes out in delay order, from worst to best.
+
+------
+Interconnect Timing
+
+wire delay : depends on lenght, and load (number of gates attached)
+
+for a wire :
+	R, resistance = r * L / W    where r = rho / H, but cannot be
+	changed, depends on manufacturing preocess, L, W can be controlled
+	C, capacitance = eps * W * L / d = c * W * L
+	W, L can be controlled, NOTE : simplistic assump. all conducting surfaces
+	create cap
+
+pi model : models a wire as
+2C-1R
+
+o-.-R-.-o
+  |   |
+  C   C
+  |   |
+  V   V
+
+
+NOTE : a n-furcation in the join point there are n capacitors connected
+	= Cn = sum Ci i in [0, n-1]
+
+
+result of a net : RC-tree, simple to analize
+
+root : signal input
+leafs : ground(s)
+
+need to model the driver gates : V_IN + R
+need to model the driven gates : Capacitors
+
+Elmore delay formula
+	tau = 0
+	tau = tau + R * sum all caps downstream
+	this foreach R in the upstreap_gate-downstream_gate
+
+------
+Elmore eg.
+
+r = 1, c = 2
+R = r*L/W C = c*W*L
+
+
+a->(b)		W=1, L=20
+b->(c, d)	W=1, L=5
+c->(e, f)	W=1, L=2
+d->(g, h)	W=1, L=2
+
+gate_a_R = 20
+C_load_efgh = 1
+
+gate_a -> h = 2881 =
+	20   * (20+30+2*9+4*3)
+	+ 20 * (30+2*9+4*3)
+	+ 5  * (9*2*3)
+	+ 2  * (3)
+
+NOTE : if a single L in the tree changes both the R, C of the arc change
+	and threfore all the values in the calc.
+	NOT only in the subtree of the arc, but in ALL the leafs
 
