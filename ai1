@@ -1,0 +1,338 @@
+ReLU := rectified linear unit
+
+x[] := vector of features, eg. size, #bedrooms, zipcode, ...
+y := perdicted value, eg. price
+
+forall x. x in Layer(N). x `connected` Layer(N-1)
+
+Layer(x for x in [N..0]) : LayerN = input, Layer0 = output
+
+Starndard NN : Data
+
+Conv. NN : Img Data
+
+Recurrent NN : (Seq Data)
+
+Structured Data : """Measured?""" ?? | Ord(StrDataElements) ?
+Un-struct Data : Audio/Img/Txt
+
+
+Advantage of NN : performance(accur.) scales with the amount of data,
+	and the size of the NN
+
+NOTE(notation) : (m) := size of training set
+
+NOTE: NN perf. not really well defined in respect to other Ai tech on small
+	data
+
+----
+Image Classification
+
+Px : 0-255
+Image : Px[3][N][M]
+	N by M rgb image
+
+
+X : feature vector, reshape(Image, [n=3*N*M, 1])
+
+training set : (x, y) in (R^n, {0.0 .. 1.0})
+
+m training saples => tr.set = {(x1, y1), .. , (xm, ym)}
+	or m_train
+m_test = #{ test examples }
+
+X = [x1, .., xm] : [n, m]matrix
+
+	[|	|		| ]
+X =	[x1	x2	..	xm]
+	[|	|		| ]
+
+X : R^(n_x, m), shape(X) = [n_x, m]
+
+Y = [y1, .., yn], Y : R^(1, m), shape(Y) = [1, n]
+
+----
+Logistic Regression
+
+given x, wanted  y_ = P(y=1 | x)
+
+input :
+x in R^n_x
+
+parameters :
+w in R^n_x, b in R
+
+output? :
+WRONG(lin.reg) : yhat = w^T * x + b
+yhat is a probability (estimate of y, the prb. of y=1, given x)
+so it MUST be in {0.0 .. 1.0} range
+
+y_ = sigma(w' * x + b)
+
+sigma(z : R) : sigmoid function = 1. / (1. + e ^ -z)
+sigma(z --> +inf) --> 1
+sigma(z --> -inf) --> 0
+
+
+so given T = { (x1, y1), .. (xm, ym) } want to find (w, b) s.t. yhati ~ yi
+	<var>i = data assoc to i-th training ex
+
+zi = w' * xi + b
+sigma(zi) = 1./(1. + e^-zi)
+
+L := Loss function : error function
+NOTE if i choose L(yhat, y) = 1/2 * (yhat - y)^2 half.sqr.err =>
+	non convex opt prob :( (in gr.desc. find local min, non glob)
+
+
+L(yhat, y) = -(y * log(yhat) + (1-y) * log(1-yhat))
+if y = 1 => L = -log(yhat)
+	want log(yhat) large =>  yhat as large as possible (-->1)
+if u = 0 => L = -log(1-yhat)
+	want log(1-yhat) large =>  yhat small (-->0)
+
+NOTE L is for the single training exaple
+
+Cost function J(w, b) = 1/m * sum(L(yhati, yi) | i in [1..m])
+	= -1/m * sum(yi * log(yhati) + (1-yi) * log(1-yhati) | i in [1..m])
+
+NOTE J is for the hole training set
+
+----
+Gradient Descent
+
+J(w, b) is a convex function
+want w_, b_ s.t. J(w_, b_) = min(J | forall. w, b)
+
+algo :
+
+repeat {
+	w := w - alpha * dJ(w)/dw
+}
+
+alpha : learning rate
+w : J's parameters
+
+
+so, for w, b params
+
+repeat {
+	w := w-alpha*dJ(w, b)/dw
+	b := b-alpha*dJ(w, b)/db
+}
+
+
+NOTE(notation) : dJ/dvar -> dJdvar / dvar, since it's always the output (J)
+	that gets derived
+
+REM : dF/dy = dF/dx * dx/dy
+
+
+
+z = w'x+b = sum(wi*xi | i in [1, size(w)]) + b
+yhat = a = sigma(z)
+L(a, y) = -(y * log(a) + (1-y) * log(1-a))
+
+
+dL/da = "da" = -y/a + (1-y)/(1-a)
+
+dL/dz = "dz" = dL/da * da/dz = "da" * d/dz a,
+	where a=sigma(z) => dadz = a*(a-1)
+"dz" = a-y
+
+dL/dw1 = "dw1" = "dz" * dz/dw1 = x1 * (a-y)
+dL/dwi = "dwi" = "dz" * dz/dwi = xi * (a-y)
+dL/db  = "db"  = "dz" * dz/db  = (a-y)
+
+so
+	w1 := w1-alpha * "dw1"
+	...
+	b := b-alpha * "db"
+but this is for just 1 training ex, what to do for m?
+J(w, b) = -1/m * sum(yi * log(yhati) + (1-yi) * log(1-yhati) | i in [1..m])           
+
+
+d/dwi J(w, b) = 1/m sum( d/dwi * L(ai, yi))
+						__________________->known (cald prev)
+____________ -> avg("dwi" | i in [1, m])
+
+
+pseudo algo (not entirely vectorized)
+
+J, dw, db = 0., zeros(n), 0.
+for (xi, yi) in train:
+	zi = dot(w, xi) + b
+	ai = sigma(zi)
+	J = J - (yi * log(ai) + (1-yi)* log(1-ai))
+	dzi = ai - yi
+	dw = dw + dot(xi, dzi)
+	db = db + dzi
+J  = 1./m * J
+dw = 1./m * dw
+db = 1./m * db
+
+w = w - alpha * dw
+b = b - alpha * db
+
+vectorized
+
+X = [x1, ..., xm]
+
+z = transpose(w) * X + repeat(b, m)
+a = sigma(z)
+
+
+Z = dot(w.T, X) + b #numpy
+a = sigma(Z)
+
+dZ = A-Y
+dw = (dw + X * dZ.T)/m
+db = sum(dZ)/m
+
+
+cost function explantation :
+	if y=1 p(y|x)= yhat
+	if y=0 p(y|x)= 1 - yhat
+
+	p(y|x) = yhat^y * (1-yhat)^(1-y) satisfies the obove propriety
+
+	maximize(p) = maximize(log(p)) since log grows monot.
+	
+	log(p) = y*log yhat + (1-y)*log(1-yhat)
+
+	max log(p(y|x)) = minimize(-L(yhat, y)) # here comes the - sign
+
+	p(labels in tgt set) = prod(p(yi|xi) | i in [1..m]) # assuming var ident
+		indipend distrib
+
+	maxim(p) = maxim(log(p) # maximizing the prob is the same as maxim the log of p
+
+	log(p(...)) = sum(log(p(yi|xi)) | i in [1..m])  # log of product = sum of logs
+					  \-L(yhati, yi)/
+
+	log(p(...)) = -sum(L(yhati, yi) | i in [1..m]) # = cost = J(w, b)
+
+
+	maximize (-sum...) = minimize(sum...)
+	
+	minimize( 1/m * sum(L(yhati, yi) | i in [1..m]) ) # adding a 1/m scaling to
+		normalize
+
+
+REM : d/dx sigm(x) = sigm(x) * (1 - sigm(x))
+
+----
+NN Representation
+
+training : (input, output)
+
+
+input  (X) -> corresponds to values of the input layer
+output (y) -> corresponds to values of the output layer
+
+hidden layer -> values not given as part of the training set, calcd via
+	training
+
+
+a0 := X # a as in activation of layer 0
+		# size (xn, 1)
+a1 : hidden layer activation, size (?, 1)
+a2 := yhat # output layer activation, size (1, 1)
+
+
+----
+
+What if instead of 1 neuron (or a hidden layer of 1 neuron) we have multiple?
+they are connected as x->a1, x->a2... x->an, a1->yhat... an->yhat
+
+Node of the activation layer[1] : # 1 is the hidden layer
+	zi = Wi' * x + bi
+	ai = sigma(zi)
+
+	for i in [1..size(layer[1])]
+
+n is the size of layer1
+
+conputing z as a vector :
+
+	[-w1'-]		[b1]
+W =	[-wi'-],b =	[bi]
+	[-wn'-]		[bn]
+
+z = W * x + b
+a = sigma(z)
+
+NOTE : same as before, but b, z, a are n-vectors
+
+NOTE(notation) : zi, ai, Wi # z, a, W of layer i
+
+z2 = W2 * a1 + b2
+a2 = sigma(z2)
+
+yhat = a2
+
+
+so in general for NN of 1 hidden layer
+n = size in
+k = size hidden
+o = size out, usually 1
+
+# var				| size
+a0 = x				| (n, 1)
+z1 = W1 * a0 + b1	| (k, 1) = (k, n) * (n, 1) + (n, 1)
+a1 = sigma(z1)		| (k, 1)
+z2 = W2 * a1 + b2	| (o, 1) = (o, k) * (o, 1) + (o, 1)
+a2 = sigma(z2)		| (o, 1)
+yhat = a2			| (o, 1)
+
+
+so, for p training exampes, assuming var(i) = var of the i training ex.
+
+for i in range(p)
+	a0(i) = x(i)		
+	z1(i) = W1 * a0(i) + b1
+	a1(i) = sigma(z1(i))
+	z2(i) = W2 * a1(i) + b2
+	a2(i) = sigma(z2(i))
+
+
+vectorizing :
+
+X = [x1, ..., xm]
+
+Z1 = W1 * X + b1	# Z1 = [z1(1), ... z1(m)] 
+A1 = sigma(Z1)		# A1 = [a1(1), ... a1(m)]
+Z2 = W2 * A1 + b2
+A2 = sigma(Z2)
+
+
+REM :
+	X : horz is n.trainig ex, vert is size of input (n.input features)
+	A and Z : horz is n.training ex, vert n.hidden units
+
+
+----
+Different activation functions
+
+f = sigma(z) = 1. / (1. + e^-z)	# range 0, 1
+
+f = tanh(z)	# range -1, 1 
+	always better than sigmoid, except for out layer in binary classif
+	range 0, 1 makes more sense
+
+f = relu(z) = max(0, z)
+
+
+how to choose?
+	if bin classification __in output layer__ sigmoid
+	ow relu, __use this by default__
+
+
+leeky_relu : works better, but used less in practice
+leeky_relu(z) = max(0.01 * z, z)
+
+
+
+
+
+
