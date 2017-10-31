@@ -279,9 +279,9 @@ o = size out, usually 1
 
 # var				| size
 a0 = x				| (n, 1)
-z1 = W1 * a0 + b1	| (k, 1) = (k, n) * (n, 1) + (n, 1)
+z1 = W1 * a0 + b1	| (k, 1) = (k, n) * (n, 1) + (k, 1)
 a1 = sigma(z1)		| (k, 1)
-z2 = W2 * a1 + b2	| (o, 1) = (o, k) * (o, 1) + (o, 1)
+z2 = W2 * a1 + b2	| (o, 1) = (o, k) * (k, 1) + (o, 1)
 a2 = sigma(z2)		| (o, 1)
 yhat = a2			| (o, 1)
 
@@ -332,7 +332,86 @@ leeky_relu : works better, but used less in practice
 leeky_relu(z) = max(0.01 * z, z)
 
 
+----
+Derivatives
+
+d/dz * tanh(z) = 1-tanh(z)^2
+
+a := tanh(z) => d/dz * a = 1-a^2
+
+
+d/dz * relu(z) = 0 z < 0 | 1 if z > 0 | undefined z == 0
+	# but for optim., remove undefined case
+
+d/dz * relu(z) = 0 z < 0 | 1 if z >= 0
+
+d/dz * leeky_relu(z) = 0.01 z < 0 | 1 z >= 0
+	# same consideration for undefined at z == 0
+
+----
+
+nx = n[0] = size layer0
+n[1] = size layer1
+n[2] = 1 = size layer2
 
 
 
+J(W1, b1, W2, b2) = 1/m sum(L(yhati, yi) | i in [1...m])
+								^ a2
 
+repeat {
+	dW = d/dW * J
+	db = d/db * b
+	W = W - alpha * dW
+	b = b - alpha * db
+}
+
+----
+backprop
+
+Y = [y1...ym]
+
+Z1 = W1*X + b1	|	dZ2 = A2 - Y
+A1 = g1(Z1)		|	dW2 = 1/m * dZ2 * A1'
+Z2 = W2*A1+b2	|	db2 = 1/m * sum(dZ2, axis=1)
+A2 = g2(Z2)		|	dZ1 = W2'*dZ2 .*  (d/dz g1)(Z1)
+
+dW1 = 1/m * dZ2 * X'
+db1 = 1/m * sum(dZ1, axis=1, keepdims=True) # remember in sum keepdims
+
+comp graph : |z1 = W1*x+b1|->|a1=g1(z1)|->|z1=W2*a1+b2|->|a2=g2(z2)|->L(a2,y)
+
+REM dvar = dfun/dvar
+
+dz2 = a2-y
+dw2 = dz2 * a1'
+db2 = dz2
+
+dz1 = w2' * dz2 .* (d/dz g1)(z1)
+
+#(n1, 1) = (n1, n2)(n2, 1) .* (n1, 1)
+
+dw1 = dz1 * X'  # X = A0
+db1 = dz1
+
+
+vectorized :
+
+dZ2 = A2 - Y
+dW2 = 1/m * dZ2 * A1'
+db2 = 1/m sum(dZ2, axis=1,kee..)
+dZ1 = W2' * dZ2 .* (d/dz g1)(Z1)
+dW1 = 1/m dZ1 X'
+db1 = 1/m sum(dZ1, axis=1,kee..)
+
+
+----
+
+Weights initialization
+
+initializing W to zero (not b) is problematic
+all hidden units are symmetric.
+
+so initialize all W randomly (small, 0.01)
+if W is inited with large values, g(large)'s gradient is small and learning is
+	slow
