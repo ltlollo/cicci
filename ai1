@@ -415,3 +415,101 @@ all hidden units are symmetric.
 so initialize all W randomly (small, 0.01)
 if W is inited with large values, g(large)'s gradient is small and learning is
 	slow
+
+----
+
+Deep Nets
+
+0 hidden layers : logistic regression
+1 hidden layers : shallow network, see prev
+N hidden layers : deep network, now
+
+NOTE(notation) :
+	L : #layers
+	n[l] = #units in layer l
+	a[l] = activations of l
+	a[l] = g[l](z[l]) ...
+
+	a[0] = X : input
+	a[L] = yhat : output
+
+
+for n in range(1, L): #for L layers
+	Z[n] = W[n]*A[n-1]+b[n]
+	A[n] = g[n](Z[n])
+
+W[l] : (n[l], n[l-1])
+b[l] : (n[l], 1)
+
+NOTE : dW's dim = W's dim, same for b
+
+
+this, for 1 single training :
+a[l], z[l] : (n[l], 1)
+
+this for m training examples :
+Z[1]  = W[1] * X + b[1]
+	dim : (n[l], m) = (n[l], n[l-1]) * (n[l-1], m) + (n[l], m)
+
+
+
+fw prop : in. a[l-1], out. a[l]
+	z[l] = w[l] * a[l-1] + b[l], cache z[l], will be useful for bkprop
+	a[l] = g[l](z[l])
+
+bk prop : in. da[l], out. da[l-1], # also in. cache
+
+
+
+a[l-1] ->  | w[l], b[l] | -> a[l]
+				|cache z[l]
+				v
+da[l-1] <- | w[l], b[l] | <- da[l]
+           | dz[l] calcd|
+				|
+				v
+			dw[l], db[l]
+
+repeated for L layers
+
+
+a[0] -> | | -> .. -> | | -> yhat = a[L]
+		 |			  | #cached a[1..L]
+		 v			  v
+		| | <- .. <- | | <- da[L]
+		 |			  |
+		 v			  v
+			dw[1..L]
+			db[1..L]
+
+w[l] = w[l] - alpha * dw[l]
+b[l] = b[l] - alpha * db[l]
+
+
+vectorized fw :
+Z[l] = W[l] * A[l-1] + b[l]
+A[l] = g[l](Z[l])
+
+non vectorized bw :
+dz[l] = da[l] .* (d/dz g[l])(z[l])
+dw[l] = dz[l] * a[l-1]
+db[l] = dz[l]
+da[l-1] = w[l]' * dz[l]
+
+NOTE : dz[l] = w[l+1]' * dz[l+1] .* (d/dz g[l])(z[l])
+
+vectorized bw :
+dz[l] = dA[l] .* (d/dz g[l])(z[l])
+dw[l] = 1/m * dZ[l] * A[l-1]'
+db[l] = 1/m sum(dZ[l], axis=1, ..)
+dA[l-1] = w[l]' * dZ[l]
+
+
+NOTE :
+	A gets passed fw
+	Z gets cached (passed down)
+	dA gets passed back
+	dw, db get passed down
+
+NOTE : dA[L] = -Y./A + (1. -Y)./(1-A)
+
