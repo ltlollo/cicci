@@ -1,0 +1,340 @@
+Hyperparameters tuning
+
+given data set
+
+usually partition data in :
+	training set,
+	hold out / cross validation / dev set
+	test set
+
+
+tradidionally :
+70/30% : train/test
+60/20/20% : train/dev/test
+
+modern(big data) :
+dev set small enough to test different algos
+eg.
+1M data -> 10k dev, 10k test
+
+98/1/1% partition
+
+NOTE : make sure that training and dev/test set come from the same ditribution
+NOTE : might be ok not to have test set, test on the dev set
+
+
+human err.			0%
+				eg1	|	eg2		|	eg3		|	eg4	
+train set err.	1%	|	15%		|	15%		|	0.5
+dev set err.	11%	|	16%		|	30%		|	1
+		hi. variance|	hi bias	|	hi bias	|	lo bias
+									hivar	|	lo var
+
+if optimal (bayes) err (human in this case) is higher, eg 15%
+then the hi bias cases would note be high
+
+----
+Solutions
+
+if
+hi bias =>
+	bigger net
+	train longer
+	(change NN arch)
+else if
+hi variance =>
+	more data
+	reguralization
+	(change NN arch)
+goto start
+else
+done
+
+traditionally : bias/variance tradeoff
+	not many tools to deal with only one
+modern : not the case
+
+
+----
+Reguralization
+
+----
+L2 reguralization
+
+min(J(w, b) | w, b)
+J(w, b) = 1./m * sum(yhat(i), y(i) | i in [1..m]) + lam / 2m norm2(w)^2
+
+L1 reguralization : with L2 norm
+
+norm2(w)^2 = sum(wj^2 | j in [1..nx]) = w'*w
+
+could reguralize also b, but makes no/little difference
+
+with L1 reguralization :
+norm1(w) = lam/2m sum(abs(wj) | j in [1..nx])
+
+
+for NN
+
+J(w[1], b[1], ...w[n], b[n]) = 1/m sum(L(yhat(i), y(i))| i in [1..n]) +
+	lam/2m sum(norm2(W[l])^2 | l in [1..L])
+
+where norm2(W[L])^2 is frobenius norm, norm 2 mat =
+	sum(norm2(W[l]^2 | l in [1..L])
+
+
+dw[l] = dJ/dw[l] = dw[l] from backprop + lam/m w[l]
+										\		  / regul term
+weight decay
+
+w[l] = w[l] - alpha(from bp + lam/m*w[l]) = w[l]*(1-alpha*lam/m) + alpha*from bp
+													less than 1
+													therfore decay
+
+why prevents overfitting?
+
+lam zero =												no effect
+lam hi, w[l] small, z[l] small, g(z[l]) linear linear ~~ underfitting
+
+NOTE : J includes lam/2m*sum..., remember to include the term... if for ex.
+	debugging to see if decreases monotonically
+
+
+----
+Drop out Regur.
+
+
+zero out a node randomly with some drop-out prob
+
+keep_prob = some num [0.0..1.0]
+drop_prob = 1. - keep_prob
+
+eg for layer 3
+
+d3 = np.random.rand(a3.shape) < keep_prob # dropout vector/matrix (multi ex.)
+	# randomly zeroing out drop_prob% hidden units,
+	# __differently for each training example__
+a3 = np.multiply(a3, d3) # .*
+a3 /= keep_prob # not to reduce the expecded value
+
+NOTE : !!!! rand, not randn
+
+
+NOTE : at test time NO drop out to calc error.
+
+NOTE : the bigger the layer the higher change of overfitting, the lower
+	keep_prob should be used
+	input layer is not usually dropped_out, keep_prob = 1.0
+
+NOTE : drop out makes J not well defined, is harder to plot J mono-decreasing
+	to debug set keep_prob=1.0 and debug
+
+NOTE : drop out only in fwprop, use the same rand drop masks used for fw pass
+	in bwprop pass
+
+----
+Data augmentation
+
+for images :
+	flip horz the imag
+	random crop/distortion
+
+----
+Early stopping
+
+plot training err/J per iteration
+plot dev set error
+
+just stop when dev set error is not decreasing / minimum across all iterations
+
+NOTE : not so good apprach, not otrhogonal relation bw
+	.optimization phaze (minimizing J)
+	.tuning not to overfit 
+
+NOTE : less proc intensive than L2 regu
+
+----
+Normalizing the input data
+
+
+mu = 1/m sum(x(i))
+x -= mu
+sigmasqr = 1/m sum(x(i)^2)
+x /= sigmasqr
+
+NOTE : also use the __same__ (mu, sigmasqr) to regu the test set
+
+
+----
+
+Vanishing/explogin gradients
+
+in very deep nets, derivs get exp.big or ex.small
+
+if g(z) = z, b = 0, y = w[L]*w[L-1]w[1]*x
+
+if for a 2-sized L-layer net  W[l] = [a, 0; 0 a] =>
+	yhat = W[L]*[a^L, 0; 0, a^L]*x
+
+a < 1 weights decrease exp
+a > 1		increase
+
+same for dW => small convergence
+
+solution init W initially with var(wi) = 1/n
+for relu var(wi) = 2/n
+
+W[l] = np.random.randn(shape) * np.sqrt(1/n[l-1])
+
+tanh => sqrt(1/n[l-1]) # xavier init
+		sqrt(2/(n[n-1]+n[l])) # other variant
+		sqrt(2/n[l-1]) # He init
+
+
+----
+Better derivative
+
+orig :
+d/dz f = (f(z+eps)-f(z))/eps
+err ~ O(eps)
+new :
+d/dz f = (f(z+eps) + f(z-eps))/2eps
+err ~ O(eps^2)
+
+----
+Gradient checking
+
+
+reshape W[1], b[1], ... W[L], b[L]
+to a vector th (as in theta)
+same for dW[1], ....
+to a vector dth
+
+for i in len theta
+	dthapprox[i] =
+		(J(th1, ..., thi+eps, ...) - J(th1, ..., thi-eps, ...)) / 2eps
+	check ||dthapprox - dth||2 / (||dthapprox||2 + ||dth||2)
+		=> 10^-7 ok
+		=> 10^-5 meh
+		=> 10^-3 bug
+
+----
+Exponentially Weighted Avg
+
+theta(t) = data, t in [1..n]
+
+V(0) = 0
+V(t) = beta * V(t-1) + (1-beta) * theta(t)
+
+~ averaging over 1/(1-beta) samples
+
+eg.
+v100= 0.9*v99+0.1*theta100
+v99 = 0.9*v98+0.1*theta99
+v98 = 0.9*v97+0.1*theta98
+v97 = 0.9*v96+0.1*theta97
+
+v100 = 0.1*theta100+0.9*(0.1*0.9theta99+0.9*(0.1*theta98+...)))))
+	= 0.1*theta100 + 0.1*0.9^1*theta99+0.1*0.9^2*theta98+...
+
+since (1-eps)^(1/eps)~1/e, avg over eps samples
+	in eg. eps=0.1, t=100days => avg over 10days, beta=0.98, eps=0.02 => 50days
+
+v(t) is initially biased (t ~ [1, 2, 3])
+	instead take V(t)/(1 - beta^t)
+
+
+----
+Optimizing Grad descent using Exp W avg
+
+instead of using dW, db, smooth them with EWA
+
+calc dW
+VdW = beta * VdW + (1-beta)dW
+Vdb = beta * VdW + (1-beta)db
+...
+W -= alpha * VdW
+b -= alpha * Vdb
+
+
+----
+Optimizing Grad descent using RMSProp
+
+SdW = beta * SdW + (1+beta)*dW^2
+Sdb = beta * Sdb + (1+beta)*db^2
+...
+W = W - alpha * dW/sqrt(SdW)
+b = b - alpha * db/sqrt(Sdb)
+
+NOTE : beta is a diff Hparam than the previous EWA's beta
+
+
+----
+Adam Optimization (1st and 2nd moment : aka EWA + RMSProp)
+
+same SdW, VdW, ..., beta1 = beta of EWA, beta2 = beta of RMSProp
+
+VdWcorr = VdW / (1-beta1^t)
+SdWcorr = SdW / (1-beta2^t)
+Vdbcorr = Vdb / (1-beta1^t)
+Sdbcorr = Sdb / (1-beta2^t)
+....
+W = W - alpha * VdWcorr/sqrt(SdW+eps)
+b = b - alpha * Vdbcorr/sqrt(Sdb+eps)
+
+t : 1..., training iter
+
+NOTE : usually
+	beta1 : 0.9
+	beta2 : 0.999
+	eps : 10^-8
+	alpha : must tune
+
+
+----
+Oprimizing learning rate : larn.rate dacay
+
+as the algo approaches to the seolution it starts to oscillate near it
+moving ~ alpha dist
+
+solution :
+	alpha --> 0 as n. of epoch --> +Inf
+
+alpha = 1/(1+decay_rate * epoch_num) * alpha0
+or
+alpha k/sqrt(epoch_num) *alpha0
+or
+k/sqrt(t) * alpha0
+	where t is the trainig iter
+or
+manual decay
+
+---
+Problem
+
+Local Optima : not a problem, as long as data is big
+Plateaus : space where dW is near zero, very slow descent !!!
+
+
+----
+Tuning H-params
+
+layer dims : random sampling layer dims in linear scale
+
+alpha : sample uniformly in log scale [0.0001, 0.001] more likely than 
+	[1-0.0001, 1]
+
+randalpha :
+	r = -4*np.random.nard() # range = [-4, 0]
+	alpha = 10**r			# range = [10^-4, 10^0]
+
+beta : eg 0.9...0.999 [ == avging over 10 samples - 1000 samples]
+	so must be sampled in log scale using 1-beta
+	
+	1-beta = 0.1...0.001
+
+	r = -1 + -2 * randn()
+	oneminbeta = 10**r
+	beta = 1+oneminbeta
+
+
