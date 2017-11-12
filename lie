@@ -1,0 +1,48 @@
+lie algebra
+
+Lie :
+	L : vector space
+	[_,_] : L,L -> L
+		bilinear [_,_] a, b, c, d in F field, x, y, z, w in L :
+			[ax + by, cz + dw] = [ax + by, cz] + [ax + by, dw] =
+			[ax, cz] + [by, cz] + [ax, dw] + [by, dw] =
+			ac[x, z] + bc[y, z] + ad[x, w] + bd[y, w]
+
+		selfcommutativity x in L :
+			forall x. x in L. [x, x] = 0
+
+		jacobi x, y, z in L :
+			[x, [y, z]] + [y, [z, x]] + [z, [x, y]] = 0
+
+
+anticommutativity x, y in L:
+	[x, y] = -[y, x]
+
+	L@+(x, y)
+		x + y in L
+	Lie@bilinear(1, 1, 1, 1, x, y, x, y) :
+			[x + y, x + y] = [x, x] + [x, y] + [y, x] + [y, y]
+		$ Lie@selfcommutativity(x+y) :
+			[x + y, x + y] = 0
+		$ Lie@selfcommutativity(x) :
+			[x, x] = 0
+		$ Lie@selfcommutativity(y) :
+			[y, y] = 0
+		$ L@inv([x, y], [y, x])
+	[x, y] = -[y, x]
+
+
+isomorphic L, L' in Lie :
+	exists p. p : L -> L'.
+		bijective f
+		forall x, y. x, y in L. f(x + y) = f(x) + f(y)
+		forall c. c in F f(cx) = cf(x)
+		forall x, y. x, y in L. f([x, y]) = [f(x), f(y)]
+
+
+subalgebra k :
+	k in subspace(L)
+	k in Lie
+
+
+[x, 0] = 0 = [0, x]

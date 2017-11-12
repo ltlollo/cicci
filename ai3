@@ -1,0 +1,10 @@
+orthogonalization of Hyper-param tuning
+
+Fitting Train-set on cost function :
+	bigger net, better algo
+Fitting Dev-set on cost fn :
+	reguralization, bigger Tr.set
+Fitting Test-set on cost fn :
+	bigger Dev-set
+Performing well on real world :
+	change Dev-set, change cost fn
