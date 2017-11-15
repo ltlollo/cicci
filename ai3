@@ -8,3 +8,186 @@ Fitting Test-set on cost fn :
 	bigger Dev-set
 Performing well on real world :
 	change Dev-set, change cost fn
+
+
+----
+Eval classidier
+Precision : %of classified as A are A
+Recall : %of A are regognosed as A
+
+F1 Score : 2/(1/P + 1/R)	# armonic mean bw prec and recall
+use Classifier with higher F1 score
+
+
+optimizing metric : must be minimized
+satisfing metric : must be < trhld
+
+
+dev/test set must be from same distr
+
+small data
+train/test 70/30
+train/test/dev 60/20/20
+
+big data
+train/test/dev 98/1/1
+
+test : eval final cost
+dev : eval algo, test diff ideas
+
+----
+usually ML surpasses human level perf. but it's capped by bayes optimal error
+if word than human :
+	get human labels
+	gain insight from manual error analys
+	better anal of bias/var
+
+if training err is far from human/bayes err : focus on bias reduction
+if training err is far from dev err : focus on variance reduction
+
+NOTE : can use human err for bayes err to look where to inprove
+
+trainnig err - bayes err = avoidable bias
+dev err - training err = avoidable variance
+
+focus on the greatest avoidable qnty
+
+
+----
+guidelines, improve perf
+
+avoidable bias :
+	bigger model
+	train longer / better opt algo
+	change NN arch /H-params
+avoidable variance :
+	more data
+	regularization (L2, dropout, augrmantation)
+	change arch / H-params
+	
+
+----
+a good approach to manually fix errors
+
+manually pick out of dev #{n predicted dogs} = tot
+count #{k out of n mislabeled}/tot => this is the ceiling on how investing in
+fixing dog mislabeling is going to help prediction accu.
+
+create a table
+rows : mislabelled examples
+cols : problems (dogs labelled as cats, lions not recognised, blurry)
+
+final row : %
+	how wothwile is to work on the problem
+
+
+----
+
+dev set errors due to incorrect labels :
+	worthwile to fix if the differenct bw algos that you are testing
+	is comparable to errors due to incorrect lables. ow if err due to wrong
+	lables is much less, don't care
+
+
+
+
+NOTE : remember to use real on filde data, in dev/test
+
+training-dev-set : same distr for trainining
+if (dev.err - tr-dev.err) big => data mismatch error 
+
+err hier, plus problem disgnositics :
+
+ERR					PROB
+human/bayes err
+					if diff big : avoidable bias
+trainig set err
+					if diff big : avoidable variance
+training-dev set err
+					if diff big : data-mismatch
+dev err
+					if diff big : overfitting on dev set
+test err
+
+data mismatch problems : synthetise noise to add to training data
+NOTE : do not overfit generated data or noise
+
+
+----
+Learn Transfer
+
+
+NN -> trained to a task (eg. image recognotion)
+
+delete the out node, add a new node (random W, b)
+and train for the new task (eg. radiology diagnosis)
+
+works bc. it was in a good position to begin with
+low level features (=optimal state) should be similar bw the two tasks
+
+
+Two phases :
+	Pretrainig -> Finetung
+
+
+might be useful to add multiple out layers
+
+
+eg pretraining [3, 4, 5, 3, 3, 1] ->
+	new shape : [3, 4, 5, 3, 3] ++ [3, 3, 1]
+
+TL from A->B tasks make sense if
+	same input shape
+	have a lot of A examples
+	low lvl features of A are similar to low lvl fea of B
+
+----
+Multi task learning
+
+cost : 1/m sum (L(yhatj(i), yj(i)), i in 1..m, j in 1...ntaks)
+	where L(yhatj(i), yj(i)) = -yj(i) log yhatj(i) - (1-yj(i)) log(1-yhatj(i))
+
+multi : 1 input can have multiple output activated (unlike softmax)
+	eg 1 image -> 1 pedestrian, 1 cat, 1 dog
+
+NOTE : can be advantageus to use Trans-Learn.g
+NOTE : can be trainied with incomplete lables for each ex.
+
+make sense :
+	benefint sharing low lvl features
+	amount of data for ea task is similar
+	can training a big enough net to do well enough
+
+
+----
+End2End deep learning
+
+contrast to
+
+Pipeline approach :
+	custom knowlage of the problem, diff stages
+	eg. speech audio>lowlvl features->phonemes->words->transcript
+
+E2E :
+	audio->transcript
+
+Pipeline : small amount of data (eg 3k h of speech)
+E2E : 10k-100k h of speech)
+
+if the task is split in n sipler tasks (using diff nets)
+	the process might work better
+
+NOTE : if the problem is small and common enough
+	usually there's a lot more data to solve that problem to solve that task
+	not true usually for E2E
+
+
+Pros, con E2E
++NN more customized for the problem
++less hand design
+-req. large amount of data
+-excludes hand designed components (inject human knowledge)
+
+
+E2E? if have a lot of data for the complexity of the task
+
